@@ -1,1 +1,1 @@
-# CS5300-Project-1
+# CS5300 - Project 1
