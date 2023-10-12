@@ -2,14 +2,15 @@
 # one for the prime attributes and one for the non-prime attributes
 import Attribute
 
+
 class FunctionalDependency:
-    determinants: list[Attribute.Attribute]
-    nonDeterminants: list[Attribute.Attribute]
-    
-    def __init__(self, determinant: list[Attribute.Attribute], nonDeterminants: list[Attribute.Attribute]) -> None:
+    determinants: set(Attribute.Attribute)
+    nonDeterminants: set(Attribute.Attribute)
+
+    def __init__(self, determinant: set(Attribute.Attribute), nonDeterminants: set(Attribute.Attribute),) -> None:
         self.determinants = determinant
         self.nonDeterminants = nonDeterminants
-        
+
     def __str__(self) -> str:
         returnString: str = "{ "
         for determinant in self.determinants:
@@ -19,4 +20,3 @@ class FunctionalDependency:
             returnString += nonDeterminant.__str__() + ", "
         returnString += "}"
         return returnString
-
