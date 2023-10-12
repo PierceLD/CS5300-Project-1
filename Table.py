@@ -3,10 +3,10 @@ import Attribute as A
 import FunctionalDependency as FD
 
 class Table:
-    attributes: set[A.Attribute]
+    attributes: list[A.Attribute]
     functionalDependencies: set[FD.FunctionalDependency]
     
-    def __init__(self, attributes: set[A.Attribute], functionalDependencies: list[FD.FunctionalDependency]) -> None:
+    def __init__(self, attributes: list[A.Attribute], functionalDependencies: list[FD.FunctionalDependency]) -> None:
         self.attributes = attributes
         self.functionalDependencies = functionalDependencies
          
@@ -24,11 +24,19 @@ def normalizeTo1NF(table: Table) -> set[Table]:
     return None
 
 def normalizeTo2NF(table: Table) -> set[Table]:
-    newTables: set[Table]
+    newTables: set[Table] = {}
     for functionalDependency in table.functionalDependencies:
         for attribute in functionalDependency.determinants:
             if attribute.isPrime == False:
-                pass
+                #creates a new table with the non-prime attribute as the deterimant and other attributes of functional dependency and only one functional dependency
+                newTable: Table = Table({attribute,functionalDependency.nonDeterminants}, functionalDependency)
+                newTable.attributes[0].set_isPrime(True)
+                newTables.add(newTable)
+            # else:
+            #     #else if attribute is prime 
+            #     newTable: Table = Table({functionalDependency.determinants,functionalDependency.nonDeterminants}, functionalDependency)
+            #     newTables.add(newTable)
+                
 
 
           
