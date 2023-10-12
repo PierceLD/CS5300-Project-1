@@ -11,9 +11,10 @@ def csvParse(filename: str) -> list[A.Attribute]:
     attributes: list[A.Attribute] = []
 
     with open(filename, 'r') as csv_file:
-        reader = csv.reader(csv_file)
-        for attribute in reader[0]: # getting each column attribute from first row of .csv file
-            attributes.append(attribute)
+        csv_reader = csv.reader(csv_file)
+        headings = next(csv_reader) # gets first line of file (attributes)
+        for attr in headings: # getting each column attribute from first row of .csv file
+            attributes.append(attr)
         csv_file.close()
 
     return attributes

@@ -17,7 +17,7 @@ if __name__ == "__main__":
     # get input data file and parse data to get attributes
     print("Input dataset:")
     file: str = input()
-    attributes: list[A.Attributes] = P.csvParse(file) # list of Attributes used to create Table object
+    attributes: list[A.Attribute] = P.csvParse(file) # list of Attributes used to create Table object
 
     # get Primary Key of table
     print("Key (can be composite):")
