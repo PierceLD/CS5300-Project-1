@@ -3,10 +3,10 @@ import Attribute as A
 import FunctionalDependency as FD
 
 class Table:
-    attributes: list[A.Attribute]
-    functionalDependencies: list[FD.FunctionalDependency]
+    attributes: set[A.Attribute]
+    functionalDependencies: set[FD.FunctionalDependency]
     
-    def __init__(self, attributes: list[A.Attribute], functionalDependencies: list[FD.FunctionalDependency]) -> None:
+    def __init__(self, attributes: set[A.Attribute], functionalDependencies: list[FD.FunctionalDependency]) -> None:
         self.attributes = attributes
         self.functionalDependencies = functionalDependencies
          
@@ -20,10 +20,10 @@ class Table:
                      return False  
             
 
-def normalizeTo1NF(table: Table) -> list[Table]:
+def normalizeTo1NF(table: Table) -> set[Table]:
     return None
 
-def normalizeTo2NF(table: Table) -> list[Table]:
+def normalizeTo2NF(table: Table) -> set[Table]:
     newTables: set[Table]
     for functionalDependency in table.functionalDependencies:
         for attribute in functionalDependency.determinants:
@@ -32,8 +32,8 @@ def normalizeTo2NF(table: Table) -> list[Table]:
 
 
           
-def normalizeTo3NF(table: Table) -> list[Table]:
+def normalizeTo3NF(table: Table) -> set[Table]:
     return None
 
-def normalizeToBCNF(self, table: Table) -> list[Table]:
+def normalizeToBCNF(self, table: Table) -> set[Table]:
     return None
