@@ -17,13 +17,13 @@ class Table:
         return False   
             
 
-def normalizeToNF1(table: Table) -> list[Table]:
+def normalizeTo1NF(table: Table) -> list[Table]:
     return None
 
-def normalizeToNF2(table: Table) -> list[Table]:
+def normalizeTo2NF(table: Table) -> list[Table]:
     return None
 
-def normalizeToNF3(table: Table) -> list[Table]:
+def normalizeTo3NF(table: Table) -> list[Table]:
     return None
 
 def normalizeToBCNF(table: Table) -> list[Table]:

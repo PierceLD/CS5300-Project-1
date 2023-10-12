@@ -2,6 +2,7 @@
 
 class Attribute:
     name: str
+    isPrime: bool
     
     def __init__(self, name: str) -> None:
         self.name = name
