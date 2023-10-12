@@ -10,20 +10,20 @@ class Table:
         self.attributes = attributes
         self.functionalDependencies = functionalDependencies
          
-    def isNF1(self) -> bool:
+    def is1NF(self) -> bool:
         return False
     
-    def isNF2(self) -> bool:
+    def is2NF(self) -> bool:
         for functionalDependency in self.functionalDependencies:
              for attribute in functionalDependency.determinants:
                  if attribute.isPrime == False:
-                     return False
+                     return False  
             
 
-def normalizeToNF1(table: Table) -> list[Table]:
+def normalizeTo1NF(table: Table) -> list[Table]:
     return None
 
-def normalizeToNF2(table: Table) -> list[Table]:
+def normalizeTo2NF(table: Table) -> list[Table]:
     newTables: set[Table]
     for functionalDependency in table.functionalDependencies:
         for attribute in functionalDependency.determinants:
@@ -32,7 +32,7 @@ def normalizeToNF2(table: Table) -> list[Table]:
 
 
           
-def normalizeToNF3(table: Table) -> list[Table]:
+def normalizeTo3NF(table: Table) -> list[Table]:
     return None
 
 def normalizeToBCNF(self, table: Table) -> list[Table]:
