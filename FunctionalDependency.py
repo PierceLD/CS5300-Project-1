@@ -14,12 +14,12 @@ class FunctionalDependency:
         self.nonDeterminants = nonDeterminants
 
     def __str__(self) -> str:
-        returnString = "{ "
+        returnString = "{"
         for i, determinant in enumerate(self.determinants):
             returnString += determinant.__str__()
             if i < len(self.determinants) - 1:
                 returnString += ", "
-        returnString += "} -> { "
+        returnString += "} -> {"
         for i, nonDeterminant in enumerate(self.nonDeterminants):
             returnString += nonDeterminant.__str__()
             if i < len(self.nonDeterminants) - 1:
