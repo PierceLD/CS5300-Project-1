@@ -21,10 +21,11 @@ def normalizeToNF1(table: Table) -> list[Table]:
     return None
 
 def normalizeToNF2(table: Table) -> list[Table]:
-    return None
-
+   pass
+        
+          
 def normalizeToNF3(table: Table) -> list[Table]:
     return None
 
-def normalizeToBCNF(table: Table) -> list[Table]:
+def normalizeToBCNF(self, table: Table) -> list[Table]:
     return None
