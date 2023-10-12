@@ -9,7 +9,7 @@ class Table:
     def __init__(self, attributes: list[A.Attribute], functionalDependencies: list[FD.FunctionalDependency]) -> None:
         self.attributes = attributes
         self.functionalDependencies = functionalDependencies
-         
+        self.primeAttributes = self.getPrimeAttributes
     def is1NF(self) -> bool:
         return False
     
@@ -17,9 +17,9 @@ class Table:
         #Attributes: none
         #True if table is in 2NF
         #Returns: boolean
-        primeAttributes: set[A.Attribute] = set(self.getPrimeAttributes())
+       
         for functionalDependency in self.functionalDependencies:
-             if functionalDependency.determinants != primeAttributes:
+             if functionalDependency.determinants != self.primeAttributes:
                  return False
              
                  
@@ -39,7 +39,7 @@ def normalizeTo2NF(table: Table) -> set[Table]:
     newTables: set[Table] = {}
     addDepedency: bool = True
     for functionalDependency in table.functionalDependencies:
-        if functionalDependency.determinants !=
+        if functionalDependency.determinants != 
                 
 
 
