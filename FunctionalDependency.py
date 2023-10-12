@@ -20,3 +20,4 @@ class FunctionalDependency:
             returnString += nonDeterminant.__str__() + ", "
         returnString += "}"
         return returnString
+
