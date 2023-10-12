@@ -14,15 +14,23 @@ class Table:
         return False
     
     def isNF2(self) -> bool:
-        return False   
+        for functionalDependency in self.functionalDependencies:
+             for attribute in functionalDependency.determinants:
+                 if attribute.isPrime == False:
+                     return False
             
 
 def normalizeToNF1(table: Table) -> list[Table]:
     return None
 
 def normalizeToNF2(table: Table) -> list[Table]:
-   pass
-        
+    newTables: set[Table]
+    for functionalDependency in table.functionalDependencies:
+        for attribute in functionalDependency.determinants:
+            if attribute.isPrime == False:
+                pass
+
+
           
 def normalizeToNF3(table: Table) -> list[Table]:
     return None
