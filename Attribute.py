@@ -2,9 +2,11 @@
 
 class Attribute:
     name: str
-    
-    def __init__(self, name: str) -> None:
+    isPrime: bool
+
+    def __init__(self, name: str, isPrime: bool) -> None:
         self.name = name
+        self.isPrime = isPrime
         
     def __str__(self) -> str:
         return self.name

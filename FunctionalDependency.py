@@ -7,6 +7,8 @@ class FunctionalDependency:
     nonDeterminants: list[Attribute.Attribute]
     
     def __init__(self, determinant: list[Attribute.Attribute], nonDeterminants: list[Attribute.Attribute]) -> None:
+        #Attributes: determinant (left hand side)  nonDeterminants (right hand side) of a fucntional Dependency 
+        #Returns:    nothing
         self.determinants = determinant
         self.nonDeterminants = nonDeterminants
         
