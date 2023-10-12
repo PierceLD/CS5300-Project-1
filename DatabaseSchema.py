@@ -10,7 +10,7 @@ class DatabaseSchema:
 def normalizeTo1NF(databaseSchema: DatabaseSchema) -> list[DatabaseSchema]:
     normalizedDatabaseSchema: list[DatabaseSchema] = []
     for functionalDependency in databaseSchema:
-        normalizedDatabaseSchema.append(T.normalizeToNF1(functionalDependency))
+        normalizedDatabaseSchema.append(T.normalizeTo1NF(functionalDependency))
     return normalizedDatabaseSchema
 
 def normalizeTo2NF(databaseSchema: DatabaseSchema) -> list[DatabaseSchema]:

@@ -10,10 +10,10 @@ class Table:
         self.attributes = attributes
         self.functionalDependencies = functionalDependencies
          
-    def isNF1(self) -> bool:
+    def is1NF(self) -> bool:
         return False
     
-    def isNF2(self) -> bool:
+    def is2NF(self) -> bool:
         return False   
             
 
