@@ -3,20 +3,20 @@
 import Attribute
 
 class FunctionalDependency:
-    primeAttributes: list[Attribute.Attribute]
-    nonPrimeAttributes: list[Attribute.Attribute]
+    determinants: list[Attribute.Attribute]
+    nonDeterminants: list[Attribute.Attribute]
     
-    def __init__(self, primeAttributes: list[Attribute.Attribute], nonPrimeAttributes: list[Attribute.Attribute]) -> None:
-        self.primeAttributes = primeAttributes
-        self.nonPrimeAttributes = nonPrimeAttributes
+    def __init__(self, determinant: list[Attribute.Attribute], nonDeterminants: list[Attribute.Attribute]) -> None:
+        self.determinants = determinant
+        self.nonDeterminants = nonDeterminants
         
     def __str__(self) -> str:
         returnString: str = "{ "
-        for primeAttribute in self.primeAttributes:
-            returnString += primeAttribute.__str__() + ", "
+        for determinant in self.determinants:
+            returnString += determinant.__str__() + ", "
         returnString += "} -> { "
-        for nonPrimeAttribute in self.nonPrimeAttributes:
-            returnString += nonPrimeAttribute.__str__() + ", "
+        for nonDeterminant in self.nonPrimeAttributes:
+            returnString += nonDeterminant.__str__() + ", "
         returnString += "}"
         return returnString
 
