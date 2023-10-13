@@ -22,7 +22,12 @@ if __name__ == "__main__":
     # get Primary Key of table
     print("Key (can be composite):")
     key: str = input()
-    key_set = P.keyParse(key)
+    key_set: set[str] = P.keyParse(key)
+
+    # set isPrime to true for any attribute in the primary key
+    for attr in attributes:
+        if attr.name in key_set:
+            attr.isPrime = True
 
     # get functional dependencies and parse determinants and dependents
     print("Input Functional Dependencies (type “exit” and hit enter to complete your dependency list):")
@@ -31,11 +36,14 @@ if __name__ == "__main__":
     parsed_fd_list: list[FD.FunctionalDependency] = [] # list of parsed fds
     while fd != "exit":
         fd = input()
-        fd_list.append(fd)
+        if fd != "exit":
+            fd_list.append(fd)
+    print(fd_list)
     parsed_fd_list = P.fdParse(fd_list, key_set) # list of FDs used to create Table object
 
     # create the Table object with Attributes and FDs
     table: T.Table = T.Table(attributes, parsed_fd_list)
+    print(table)
 
     print("Choice of the highest normal form to reach (1: 1NF, 2: 2NF, 3: 3NF, B: BCNF, 4: 4NF, 5: 5NF):")
     highest_nf: int = int(input())

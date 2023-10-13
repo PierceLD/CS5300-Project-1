@@ -14,7 +14,7 @@ def csvParse(filename: str) -> list[A.Attribute]:
         csv_reader = csv.reader(csv_file)
         headings = next(csv_reader) # gets first line of file (attributes)
         for attr in headings: # getting each column attribute from first row of .csv file
-            attributes.append(attr)
+            attributes.append(A.Attribute(attr))
         csv_file.close()
 
     return attributes
@@ -25,9 +25,12 @@ def csvParse(filename: str) -> list[A.Attribute]:
 """
 def keyParse(key: str) -> set[str]:
     key_set: set[str] = set()
+
     parsed_key = [x.strip() for x in key.split(',')]
+    
     for k in parsed_key:
         key_set.add(k)
+
     return key_set
 
 
@@ -73,5 +76,9 @@ def fdParse(fd_list: list[str], primary_key: set[str]) -> list[FD.FunctionalDepe
         
         # creating FunctionDependency object with determinants and non_determinants, add to list
         parsed_fds.append(FD.FunctionalDependency(determinants, non_determinants))
-
+        
+        # clear sets for next loop
+        determinants = set()
+        non_determinants = set()
+    
     return parsed_fds
