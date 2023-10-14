@@ -11,21 +11,25 @@ import FunctionalDependency as FD
 
 def main():
     
-    attrs = [attribute.Attribute("SSN",isPrime=True),attribute.Attribute("Pnumber",isPrime=True),
-             attribute.Attribute("Hours"),attribute.Attribute("Ename"),attribute.Attribute("Pname"),attribute.Attribute("Plocation")]
-    fd1 = FD.FunctionalDependency({attrs[0],attrs[1]},{attrs[2]})
-    fd2 = FD.FunctionalDependency({attrs[0]},{attrs[3]})
-    fd3 = FD.FunctionalDependency({attrs[1]},{attrs[4], attrs[5]})
-    fds = [fd1, fd2, fd3]
+    attrs = [attribute.Attribute("SSN",isPrime=True),attribute.Attribute("Ename"),
+             attribute.Attribute("Bdate"),attribute.Attribute("Address"),attribute.Attribute("Dnumber"),
+             attribute.Attribute("Dname"),attribute.Attribute("DnumberSSN")]
+    fd1 = FD.FunctionalDependency({attrs[0]}, {attrs[1], attrs[2], attrs[3], attrs[4]})
+    fd2 = FD.FunctionalDependency({attrs[4]}, {attrs[5], attrs[6]})
+    fds = [fd1, fd2]
     myTable = table.Table(attributes=attrs, functionalDependencies=fds)
 
     print(myTable)
     
-    normalized2nf = table.normalizeTo2NF(myTable)
+    print("Is the table in 2nf?",myTable.is2NF())
+    print("Is the table in 3nf?",myTable.is3NF())
 
-    for ntable in normalized2nf:
-        print(ntable)
+    normalized = table.normalizeTo3NF(myTable)
 
+    for r in normalized:
+        print(r)
+        print(r.is2NF())
+        print(r.is3NF())
 
 if __name__ == '__main__':
     main()
