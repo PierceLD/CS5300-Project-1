@@ -3,10 +3,12 @@
 class Attribute:
     name: str
     isPrime: bool
+    dataType: str # "VARCHAR" for a string, "INT" for integer, "DATE" for dates, "FLOAT" for decimals 
 
-    def __init__(self, name: str, isPrime: bool = False) -> None:
+    def __init__(self, name: str, isPrime: bool = False, dataType: str = "") -> None:
         self.name = name
         self.isPrime = isPrime
+        self.dataType = dataType
         
     def __str__(self) -> str:
         return self.name
