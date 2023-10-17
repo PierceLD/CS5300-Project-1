@@ -13,7 +13,7 @@ class Table:
         
     def is1NF(self) -> bool:
         for attribute in self.attributes:
-            if attribute.dataType == "LIST":
+            if attribute.isMultiValued:
                 return False
         return True
     
