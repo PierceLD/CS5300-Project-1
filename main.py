@@ -50,7 +50,7 @@ if __name__ == "__main__":
 
 
     print("Choice of the highest normal form to reach (1: 1NF, 2: 2NF, 3: 3NF, B: BCNF, 4: 4NF, 5: 5NF):")
-    highest_nf: int = int(input())
+    nf_to_reach: int = int(input())
 
     print("Find the highest normal form of the input table? (1: Yes, 2: No):")
     find_hnf: int = int(input())
