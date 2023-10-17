@@ -9,6 +9,7 @@ class Attribute:
     def __init__(self, name: str, isPrime: bool = False, isMultiValued: bool = False, dataType: str = "VARCHAR") -> None:
         self.name = name
         self.isPrime = isPrime
+        self.isMultiValued = isMultiValued
         self.dataType = dataType
         
     def __str__(self) -> str:
