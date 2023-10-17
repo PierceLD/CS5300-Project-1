@@ -3,9 +3,10 @@
 class Attribute:
     name: str
     isPrime: bool
-    dataType: str # SQL data type: "VARCHAR" for a str, "INT" for int, "DATE" for date, "FLOAT" for float, "LIST" for list
+    isMultiValued: bool
+    dataType: str # SQL data type: "VARCHAR" for a str, "INT" for int, "DATE" for date, "FLOAT" for float
 
-    def __init__(self, name: str, isPrime: bool = False, dataType: str = "VARCHAR") -> None:
+    def __init__(self, name: str, isPrime: bool = False, isMultiValued: bool = False, dataType: str = "VARCHAR") -> None:
         self.name = name
         self.isPrime = isPrime
         self.dataType = dataType
