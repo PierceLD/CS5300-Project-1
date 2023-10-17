@@ -1,4 +1,5 @@
 import csv
+import re
 import Table as T
 import Attribute as A
 import FunctionalDependency as FD
@@ -12,12 +13,43 @@ def csvParse(filename: str) -> list[A.Attribute]:
 
     with open(filename, 'r') as csv_file:
         csv_reader = csv.reader(csv_file)
-        headings = next(csv_reader) # gets first line of file (attributes)
-        for attr in headings: # getting each column attribute from first row of .csv file
-            attributes.append(A.Attribute(attr))
+        headings: list[str] = next(csv_reader) # gets first line of file (attributes)
+        tuple1: list[str] = next(csv_reader) # gets first line of data
+        # determines SQL data type for each attribute based on data vals in first tuple of the table
+        for i, val in enumerate(tuple1):
+            val = val.split(' ') # splits data string into a list to check for multiple values
+            if len(val) > 1: # if attribute is multi valued
+                multVals: bool = True
+            else:
+                multVals = False
+            d_type: str = getDataType(val[0])
+            attributes.append(A.Attribute(name=headings[i], isMultiValued=multVals, dataType=d_type))
+
+        #for attr in headings: # getting each column attribute from first row of .csv file
+            #attributes.append(A.Attribute(attr))
         csv_file.close()
 
     return attributes
+
+""" Takes a string representing a data value from the table to
+    determine SQL data type for the corresponding attribute using regex
+    Input: list of data values represented as strings
+    Output: string indicating SQL data type
+"""
+def getDataType(data_val: str) -> str:
+    is_date = re.search("^([1-9]|(1[0-2]))/([1-9]|(1[0-9])|(2[0-9])|(3[0-1]))/[0-9]{4}$", data_val)
+    is_integer = re.search("^-?[0-9]+$", data_val)
+    is_float = re.search("^-?[0-9]+\.[0-9]+$", data_val)
+    #is_string = re.search(".*$", data_val)
+    
+    if is_date:
+        return "DATE"
+    elif is_integer:
+        return "INT"
+    elif is_float:
+        return "FLOAT"
+    
+    return "VARCHAR" # if not a date or a number or can't determine it, then just assume a string
 
 """ Takes inputted key, parses it into a set
     Input: string indication primary key of inputted table

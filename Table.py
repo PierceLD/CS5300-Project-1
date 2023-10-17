@@ -3,15 +3,19 @@ import Attribute as A
 import FunctionalDependency as FD
 
 class Table:
-    attributes: list[A.Attribute]
-    functionalDependencies: list[FD.FunctionalDependency]
+    attributes: set[A.Attribute]
+    functionalDependencies: set[FD.FunctionalDependency]
     
-    def __init__(self, attributes: list[A.Attribute], functionalDependencies: list[FD.FunctionalDependency]) -> None:
+    def __init__(self, attributes: set[A.Attribute], functionalDependencies: set[FD.FunctionalDependency]) -> None:
         self.attributes = attributes
         self.functionalDependencies = functionalDependencies
         self.primeAttributes = self.getPrimeAttributes()
+        
     def is1NF(self) -> bool:
-        return False
+        for attribute in self.attributes:
+            if attribute.dataType == "LIST":
+                return False
+        return True
     
     def is2NF(self) -> bool:
         for functionalDependency in self.functionalDependencies:
@@ -38,6 +42,9 @@ class Table:
             if not self.isSuperkey(functionalDependency.determinants):
                 return False
         return True
+    
+    def isBCNF(self) -> bool:
+        return False
     
     def isSuperkey(self, attributes: list[A.Attribute]) -> bool:
         # Helper function to check if a set of attributes is a superkey
@@ -67,19 +74,46 @@ class Table:
             result+="\t" + fd.__str__() + "\n"
         return result
                  
+    def getPrimeAttributes(self) -> set[A.Attribute]:
+        #Attributes: none
+        #gets all the prime attributes in the relation
+        #Returns: set of Attribute
+        return [attr for attr in self.attributes if attr.isPrime]
+                
+
 
 def normalizeTo1NF(table: Table) -> set[Table]:
-    return None
+    if table.is1NF():
+        return table
+       
+    newTables: set[Table] = set()
+    for attribute in table.attributes:
+        if attribute.dataType == "LIST":
+            newDependent: set[A.Attribute] = {attribute}
+            newFunctionalDependency: FD.FunctionalDependency = FD.FunctionalDependency(table.getPrimeAttributes(), newDependent)
+            newTable: Table = Table(table.getPrimeAttributes().union(newDependent), newFunctionalDependency)
+            newTables.add(newTable)
+    return newTables
 
 def normalizeTo2NF(table: Table) -> set[Table]:
+    if table.is2NF():
+        return table
+    
+    table = normalizeTo1NF(table)
+    
     normalized: set[Table] = set()
     for functionalDependency in table.functionalDependencies:
         #Add new table with functional dependency attributes and with the functional dependency itself
-        normalized.add(Table(list(functionalDependency.determinants) + list(functionalDependency.nonDeterminants),[functionalDependency]))
+        normalized.add(Table(set(functionalDependency.determinants) + set(functionalDependency.nonDeterminants),[functionalDependency]))
     return normalized
         
 
 def normalizeTo3NF(table: Table) -> set[Table]:
+    if table.is3NF():
+        return table
+    
+    table = normalizeTo2NF(table)
+    
     normalized: set[Table] = set()
     for functionalDependency in table.functionalDependencies:
         for attr in functionalDependency.determinants:
