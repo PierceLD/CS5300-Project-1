@@ -10,8 +10,12 @@ class Table:
         self.attributes = attributes
         self.functionalDependencies = functionalDependencies
         self.primeAttributes = self.getPrimeAttributes()
+        
     def is1NF(self) -> bool:
-        return False
+        for attribute in self.attributes:
+            if attribute.dataType == "LIST":
+                return False
+        return True
     
     def is2NF(self) -> bool:
         #Attributes: none
@@ -38,6 +42,9 @@ class Table:
             if not self.isSuperkey(functionalDependency.determinants):
                 return False
         return True
+    
+    def isBCNF(self) -> bool:
+        return False
     
     def isSuperkey(self, attributes: list[A.Attribute]) -> bool:
         #Attributes: attributes: List[Attributes]
@@ -80,9 +87,12 @@ class Table:
 
 
 def normalizeTo1NF(table: Table) -> set[Table]:
+    if table.is1NF():
+        return table
+       
     newTables: set[Table] = set()
     for attribute in table.attributes:
-        if attribute.dataType is "LIST":
+        if attribute.dataType == "LIST":
             newDependent: set[A.Attribute] = {attribute}
             newFunctionalDependency: FD.FunctionalDependency = FD.FunctionalDependency(table.getPrimeAttributes(), newDependent)
             newTable: Table = Table(table.getPrimeAttributes().union(newDependent), newFunctionalDependency)
@@ -90,6 +100,11 @@ def normalizeTo1NF(table: Table) -> set[Table]:
     return newTables
 
 def normalizeTo2NF(table: Table) -> set[Table]:
+    if table.is2NF():
+        return table
+    
+    table = normalizeTo1NF(table)
+    
     normalized: set[Table] = set()
     for functionalDependency in table.functionalDependencies:
         #Add new table with functional dependency attributes and with the functional dependency itself
@@ -98,6 +113,11 @@ def normalizeTo2NF(table: Table) -> set[Table]:
         
 
 def normalizeTo3NF(table: Table) -> set[Table]:
+    if table.is3NF():
+        return table
+    
+    table = normalizeTo2NF(table)
+    
     normalized: set[Table] = set()
     for functionalDependency in table.functionalDependencies:
         for attr in functionalDependency.determinants:
@@ -107,5 +127,8 @@ def normalizeTo3NF(table: Table) -> set[Table]:
     return normalized
 
 def normalizeToBCNF(self, table: Table) -> set[Table]:
-    return None
+    if table.isBCNF():
+        return table
+    
+    table = normalizeTo3NF(table)
 

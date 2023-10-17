@@ -44,6 +44,10 @@ if __name__ == "__main__":
     # create the Table object with Attributes and FDs
     table: T.Table = T.Table(attributes, parsed_fd_list)
     print(table)
+    
+    oneNFTable: T.Table = T.normalizeTo1NF(table)
+    print(oneNFTable)
+
 
     print("Choice of the highest normal form to reach (1: 1NF, 2: 2NF, 3: 3NF, B: BCNF, 4: 4NF, 5: 5NF):")
     highest_nf: int = int(input())
