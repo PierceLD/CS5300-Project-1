@@ -17,8 +17,14 @@ def csvParse(filename: str) -> list[A.Attribute]:
         tuple1: list[str] = next(csv_reader) # gets first line of data
         # determines SQL data type for each attribute based on data vals in first tuple of the table
         for i, val in enumerate(tuple1):
-            d_type: str = getDataType(val)
-            attributes.append(A.Attribute(name=headings[i], dataType=d_type))
+            val = val.split(' ') # splits data string into a list to check for multiple values
+            if len(val) > 1: # if attribute is multi valued
+                multVals: bool = True
+            else:
+                multVals = False
+            d_type: str = getDataType(val[0])
+            attributes.append(A.Attribute(name=headings[i], isMultiValued=multVals, dataType=d_type))
+
         #for attr in headings: # getting each column attribute from first row of .csv file
             #attributes.append(A.Attribute(attr))
         csv_file.close()
