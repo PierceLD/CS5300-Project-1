@@ -82,7 +82,7 @@ class Table:
 def normalizeTo1NF(table: Table) -> set[Table]:
     newTables: set[Table] = set()
     for attribute in table.attributes:
-        if attribute.type in nonatomic types:
+        if attribute.dataType is "LIST":
             newDependent: set[A.Attribute] = {attribute}
             newFunctionalDependency: FD.FunctionalDependency = FD.FunctionalDependency(table.getPrimeAttributes(), newDependent)
             newTable: Table = Table(table.getPrimeAttributes().union(newDependent), newFunctionalDependency)
