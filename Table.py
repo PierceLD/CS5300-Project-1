@@ -31,9 +31,6 @@ class Table:
         return True
                      
     def is3NF(self) -> bool:
-        #Attributes: none
-        #True if table is in 3NF
-        #Returns: boolean
         if not self.is2NF():
             return False
         for functionalDependency in self.functionalDependencies:
@@ -44,16 +41,16 @@ class Table:
             if not self.isSuperkey(functionalDependency.determinants):
                 return False
         return True
-    
-    def isBCNF(self) -> bool:
-        if not self.is3NF():
-            return False
 
-        for functionDependency in self.functionalDependencies:
-            for primeAttribute in self.getPrimeAttributes():
-                if primeAttribute is not functionDependency.determinants:
-                    return False
+    def isBCNF(self):
+        for functionalDependency in self.functionalDependencies:
+            if not self.isSuperkey(functionalDependency.determinants):
+                return False
         return True
+    
+    def isSuperkey(self, attributes: list[A.Attribute]) -> bool:
+        # Helper function to check if a set of attributes is a superkey
+        return set(attributes).issuperset(self.primeAttributes)
     
     def is4NF(self) -> bool:
         if not self.isBCNF():
@@ -66,17 +63,9 @@ class Table:
             return False
         
         return True
-            
-    def isSuperkey(self, attributes: list[A.Attribute]) -> bool:
-        #Attributes: attributes: List[Attributes]
-        # Helper function to check if a set of attributes is a superkey
-        #Returns: bool
-        return set(attributes).issuperset(self.primeAttributes)
  
     def getPrimeAttributes(self) -> list[A.Attribute]:
-        #Attributes: none
         #gets all the prime attributes in the relation
-        #Returns: list of Attribute
         return [attr for attr in self.attributes if attr.isPrime]
                      
     def __str__(self) -> str:
@@ -147,9 +136,13 @@ def normalizeTo3NF(table: Table) -> set[Table]:
         normalized.add(Table(list(functionalDependency.determinants) + list(functionalDependency.nonDeterminants),[functionalDependency]))
     return normalized
 
-def normalizeToBCNF(self, table: Table) -> set[Table]:
-    if table.isBCNF():
-        return table
-    
-    table = normalizeTo3NF(table)
+def normalizeToBCNF(table: Table) -> set[Table]:
+    noramlized: set[Table] = set()
+    for functionalDependency in table.functionalDependencies:
+        if not table.isSuperkey(functionalDependency.determinants):
+            #R-A and XA in the form X->A in Relation R 
+            newAttrs = list(set(table.attributes).difference(functionalDependency.nonDeterminants))
+            for attr in functionalDependency.determinants:
+                attr.set_isPrime(True)
+            relation1 = Table()
 
