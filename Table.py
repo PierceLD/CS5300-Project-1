@@ -135,19 +135,19 @@ def normalizeToBCNF(table: Table) -> set[Table]:
     
     # table = normalizeToBCNF(table)
 
-    new_tables: set[Table] = set()
+    newTables: set[Table] = set()
     for functionalDependency in table.functionalDependencies:
         #find the functional dependency that is not in BCNF
         if not table.isSuperkey(functionalDependency.determinants):
             #R-A in the form of X->A in Relation R 
             newAttrs = table.attributes.difference(functionalDependency.nonDeterminants)
             newFunctionalDependency = FD.FunctionalDependency(newAttrs,newAttrs)
-            new_relation = Table(newAttrs, {newFunctionalDependency})
-            new_tables.add(new_relation)
+            newTable = Table(newAttrs, {newFunctionalDependency})
+            newTables.add(newTable)
             #XA in the form of X->A in Relation R
             newAttrs = functionalDependency.determinants.union(functionalDependency.nonDeterminants)
-            new_relation = Table(newAttrs, {functionalDependency})
-            new_tables.add(new_relation)
+            newTable = Table(newAttrs, {functionalDependency})
+            newTables.add(newTable)
 
 
 
