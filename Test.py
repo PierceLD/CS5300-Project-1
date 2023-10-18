@@ -21,7 +21,7 @@ def main():
 
     print(myTable)
     
-    print("Is the table in 2nf?",myTable.is2NF())
+    
     print("Is the table in bcnf?",myTable.isBCNF())
 
     normalized = table.normalizeTo3NF(myTable)
