@@ -37,6 +37,7 @@ class Table:
                     return True
         for functionalDependency in self.functionalDependencies:
             if not self.isSuperkey(functionalDependency.determinants):
+                
                 return False
         return True
 
@@ -58,9 +59,10 @@ class Table:
         return {attr for attr in self.attributes if attr.isPrime}
                      
     def __str__(self) -> str:
-        i = len(self.attributes)
-        if i == 0:
+        if len(self.attributes) == 0:
             return "No attributes available."
+        elif len(self.getPrimeAttributes()) == 0:
+            return "No prime attributes available"
 
         max_name_length = max(len(attr.name) for attr in self.attributes)
         total_width = (max_name_length + 4) * len(self.attributes) + 10
@@ -100,7 +102,8 @@ def normalizeTo2NF(table: Table) -> set[Table]:
     newTables: set[Table] = set()
     for functionalDependency in table.functionalDependencies:
         #Add new table with functional dependency attributes and with the functional dependency itself
-        newTable = Table(list(functionalDependency.determinants) + list(functionalDependency.nonDeterminants),{functionalDependency})
+        newAttrs = functionalDependency.determinants.union(functionalDependency.nonDeterminants)
+        newTable = Table(newAttrs, {functionalDependency})
         newTables.add(newTable)
     return newTables
         
@@ -114,13 +117,15 @@ def normalizeTo3NF(table: Table) -> set[Table]:
     newTables: set[Table] = set()
     for functionalDependency in table.functionalDependencies:
         #Add new table with functional dependency attributes and with the functional dependency itself
-        newTable = Table(list(functionalDependency.determinants) + list(functionalDependency.nonDeterminants),{functionalDependency})
-        newTables.add(newTable)
+        newAttrs = functionalDependency.determinants.union(functionalDependency.nonDeterminants)
+        newTable = Table(newAttrs, {functionalDependency})
+        newTables.add(deepcopy(newTable))
 
     for relation in newTables:
         for dependency in relation.functionalDependencies:
             for attr in dependency.determinants:
                 attr.isPrime = True
+            
         
     return newTables
 
@@ -137,12 +142,12 @@ def normalizeToBCNF(table: Table) -> set[Table]:
             #R-A in the form of X->A in Relation R 
             newAttrs = table.attributes.difference(functionalDependency.nonDeterminants)
             newFunctionalDependency = FD.FunctionalDependency(newAttrs,newAttrs)
-            new_relation1 = Table(newAttrs,{newFunctionalDependency})
+            new_relation = Table(newAttrs, {newFunctionalDependency})
+            new_tables.add(new_relation)
             #XA in the form of X->A in Relation R
-            new_relation2 = Table(list(functionalDependency.determinants) + list(functionalDependency.nonDeterminants),{functionalDependency})
-            #Im sure there is a way to add both of these in one line but eh 
-            new_tables.add(new_relation1)
-            new_tables.add(new_relation2)
+            newAttrs = functionalDependency.determinants.union(functionalDependency.nonDeterminants)
+            new_relation = Table(newAttrs, {functionalDependency})
+            new_tables.add(new_relation)
 
 
 
