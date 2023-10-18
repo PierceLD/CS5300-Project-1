@@ -22,9 +22,9 @@ class Table:
             return False
         for functionalDependency in self.functionalDependencies:
              if functionalDependency.determinants != set(self.primeAttributes):
-                 for attribute in functionalDependency.determinants:
-                     if attribute.isPrime:
-                         return False
+                for attribute in functionalDependency.determinants:
+                    if attribute.isPrime:
+                        return False
         return True
                      
     def is3NF(self) -> bool:
@@ -45,12 +45,14 @@ class Table:
                 return False
         return True
     
-    
     def isSuperkey(self, attributes: list[A.Attribute]) -> bool:
         # Helper function to check if a set of attributes is a superkey
-        return set(attributes).issuperset(self.primeAttributes)
+        if len(self.primeAttributes) > 0:
+            return set(attributes).issuperset(self.primeAttributes) 
+        else:
+            return False
  
-    def getPrimeAttributes(self) -> list[A.Attribute]:
+    def getPrimeAttributes(self) -> set[A.Attribute]:
         #gets all the prime attributes in the relation
         return [attr for attr in self.attributes if attr.isPrime]
                      
@@ -73,17 +75,12 @@ class Table:
         for fd in self.functionalDependencies:
             result+="\t" + fd.__str__() + "\n"
         return result
-                 
-    def getPrimeAttributes(self) -> set[A.Attribute]:
-        #gets all the prime attributes in the relation
-        return [attr for attr in self.attributes if attr.isPrime]
                 
-
 
 def normalizeTo1NF(table: Table) -> set[Table]:
     if table.is1NF():
-        return table
-       
+        return {table}
+     
     newTables: set[Table] = set()
     for attribute in table.attributes:
         if attribute.dataType == "LIST":
@@ -95,48 +92,56 @@ def normalizeTo1NF(table: Table) -> set[Table]:
 
 def normalizeTo2NF(table: Table) -> set[Table]:
     if table.is2NF():
-        return table
+        return {table}
     
-    table = normalizeTo1NF(table)
-    
-    normalized: set[Table] = set()
+    # table = normalizeTo1NF(table)
+
+    newTables: set[Table] = set()
     for functionalDependency in table.functionalDependencies:
         #Add new table with functional dependency attributes and with the functional dependency itself
-        normalized.add(Table(list(functionalDependency.determinants) + list(functionalDependency.nonDeterminants),{functionalDependency}))
-    return normalized
+        newTable = Table(list(functionalDependency.determinants) + list(functionalDependency.nonDeterminants),{functionalDependency})
+        newTables.add(newTable)
+    return newTables
         
-
 def normalizeTo3NF(table: Table) -> set[Table]:
     if table.is3NF():
-        return table
-    
-    table = normalizeTo2NF(table)
-    
-    normalized: set[Table] = set()
+        return {table}
+    #TODO: fix line below. normalizeToXNF returns a set when we only want to normalize one table at a time. add another for loop? idk
+    #We should do this kind of stuff in Main
+    # table = normalizeTo2NF(table)
+
+    newTables: set[Table] = set()
     for functionalDependency in table.functionalDependencies:
-        for attr in functionalDependency.determinants:
-            attr.set_isPrime(True)
         #Add new table with functional dependency attributes and with the functional dependency itself
-        normalized.add(Table(list(functionalDependency.determinants) + list(functionalDependency.nonDeterminants),{functionalDependency}))
-    return normalized
+        newTable = Table(list(functionalDependency.determinants) + list(functionalDependency.nonDeterminants),{functionalDependency})
+        #Set determinant attributes to prime
+        
+        for dependency in table.functionalDependencies:
+            for attr in dependency.determinants:
+                attr.set_isPrime(True)
+        newTables.add(newTable)
+    
+    return newTables
 
 def normalizeToBCNF(table: Table) -> set[Table]:
     if table.isBCNF():
         return table
     
-    table = normalizeToBCNF(table)
+    # table = normalizeToBCNF(table)
 
-    noramlized: set[Table] = set()
+    new_tables: set[Table] = set()
     for functionalDependency in table.functionalDependencies:
+        #find the functional dependency that is not in BCNF
         if not table.isSuperkey(functionalDependency.determinants):
             #R-A in the form of X->A in Relation R 
-            newAttrs = set(table.attributes).difference(functionalDependency.nonDeterminants)
-            for attr in functionalDependency.determinants:
-                attr.set_isPrime(True)
-            newFunctionalDependency = FD.FunctionalDependency(set(newAttrs),set(newAttrs))
-            relation1 = Table(newAttrs,{newFunctionalDependency})
+            newAttrs = table.attributes.difference(functionalDependency.nonDeterminants)
+            newFunctionalDependency = FD.FunctionalDependency(newAttrs,newAttrs)
+            new_relation1 = Table(newAttrs,{newFunctionalDependency})
             #XA in the form of X->A in Relation R
-            newAttrs = 
+            new_relation2 = Table(list(functionalDependency.determinants) + list(functionalDependency.nonDeterminants),{functionalDependency})
+            #Im sure there is a way to add both of these in one line but eh 
+            new_tables.add(new_relation1)
+            new_tables.add(new_relation2)
 
 
 
