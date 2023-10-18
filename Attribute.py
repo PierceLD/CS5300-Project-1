@@ -15,6 +15,4 @@ class Attribute:
     def __str__(self) -> str:
         return self.name
     
-    def set_isPrime(self, prime: bool) -> bool:
-        self.isPrime = prime
     
