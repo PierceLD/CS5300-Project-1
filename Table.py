@@ -21,6 +21,8 @@ class Table:
         #Attributes: none
         #True if table is in 2NF
         #Returns: boolean
+        if not self.is1NF():
+            return False
         for functionalDependency in self.functionalDependencies:
              if functionalDependency.determinants != set(self.primeAttributes):
                  for attribute in functionalDependency.determinants:
@@ -44,8 +46,27 @@ class Table:
         return True
     
     def isBCNF(self) -> bool:
-        return False
+        if not self.is3NF():
+            return False
+
+        for functionDependency in self.functionalDependencies:
+            for primeAttribute in self.getPrimeAttributes():
+                if primeAttribute is not functionDependency.determinants:
+                    return False
+        return True
     
+    def is4NF(self) -> bool:
+        if not self.isBCNF():
+            return False
+        
+        return True
+    
+    def is5NF(self) -> bool:
+        if not self.is4NF():
+            return False
+        
+        return True
+            
     def isSuperkey(self, attributes: list[A.Attribute]) -> bool:
         #Attributes: attributes: List[Attributes]
         # Helper function to check if a set of attributes is a superkey
