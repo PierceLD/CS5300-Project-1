@@ -6,12 +6,14 @@ import Attribute
 class FunctionalDependency:
     determinants: set[Attribute.Attribute]
     nonDeterminants: set[Attribute.Attribute]
+    isMultiValued: bool
     
-    def __init__(self, determinant: set[Attribute.Attribute], nonDeterminants: set[Attribute.Attribute]) -> None:
-        #Attributes: sets of attributes determinants (left hand side) & nonDeterminants (right hand side) of a fucntional Dependency 
+    def __init__(self, determinants: set[Attribute.Attribute], nonDeterminants: set[Attribute.Attribute], isMultiValued: bool = False) -> None:
+        #Attributes: sets of attributes determinants (left hand side) & nonDeterminants (right hand side) of a functional Dependency 
         #Returns:    nothing
-        self.determinants = determinant
+        self.determinants = determinants
         self.nonDeterminants = nonDeterminants
+        self.isMultiValued = isMultiValued
 
     def __str__(self) -> str:
         returnString = "{"

@@ -77,13 +77,16 @@ def fdParse(fd_list: list[str], primary_key: set[str]) -> list[FD.FunctionalDepe
     determinants: set[A.Attribute] = set()
     non_determinants: set[A.Attribute] = set()
     parsed_fds: list[FD.FunctionalDependency] = []
+    isMultiValued: bool
 
     # for each user-inputted functional dependency string
     for fd in fd_list: 
         if "->->" in fd: # for multi-valued dependencies
             partitioned_fd = fd.partition("->->")
+            isMultiValued = True
         elif "->" in fd: # for regular dependencies
             partitioned_fd = fd.partition("->")
+            isMultiValued = False
         
         # each attribute split into list element e.g. ["CourseStart", "CourseEnd"]
         lhs = [x.strip() for x in partitioned_fd[0].split(',')] 
@@ -107,7 +110,7 @@ def fdParse(fd_list: list[str], primary_key: set[str]) -> list[FD.FunctionalDepe
             non_determinants.add(A.Attribute(attr, isPrime)) 
         
         # creating FunctionDependency object with determinants and non_determinants, add to list
-        parsed_fds.append(FD.FunctionalDependency(determinants, non_determinants))
+        parsed_fds.append(FD.FunctionalDependency(determinants, non_determinants, isMultiValued))
         
         # clear sets for next loop
         determinants = set()
