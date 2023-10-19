@@ -1,12 +1,13 @@
 # basically just a list of tables (needs to be changed to tables)
 import Table as T
+from copy import deepcopy
 
 class DatabaseSchema:
     original_table: T.Table
     tables: list[T.Table]
     
     def __init__(self, original_table: T.Table, tables: list[T.Table] = []) -> None:
-        self.original_table = original_table
+        self.original_table = deepcopy(original_table)
         self.tables = tables
         self.tables.append(self.original_table) # add og input table to list of tables
 
