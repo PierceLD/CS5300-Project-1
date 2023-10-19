@@ -19,6 +19,10 @@ if __name__ == "__main__":
     file: str = input()
     attributes: list[A.Attribute] = P.csvParse(file) # list of Attributes used to create Table object
 
+    # get input table name from file name
+    table_name: str = file.split(".")[0].capitalize()
+    print(table_name)
+
     # get Primary Key of table
     print("Key (can be composite):")
     key: str = input()
@@ -42,7 +46,7 @@ if __name__ == "__main__":
     parsed_fd_list = P.fdParse(fd_list, key_set) # list of FDs used to create Table object
 
     # create the Table object with Attributes and FDs
-    table: T.Table = T.Table(attributes, parsed_fd_list)
+    table: T.Table = T.Table(attributes, parsed_fd_list, table_name)
     # create DatabaseSchema object and add the table to it
     DB_schema: D.DatabaseSchema = D.DatabaseSchema(table)
     print(table)
