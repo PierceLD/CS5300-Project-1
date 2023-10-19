@@ -6,8 +6,6 @@ __pycache__/
 # C extensions
 *.so
 
-Test.py
-
 # Distribution / packaging
 .Python
 build/
@@ -162,3 +160,4 @@ cython_debug/
 #.idea/
 
 .vscode/
+Test.py
