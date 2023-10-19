@@ -100,9 +100,12 @@ def normalizeTo2NF(table: Table) -> set[Table]:
 
     newTables: set[Table] = set()
     for functionalDependency in table.functionalDependencies:
+        # all determinants are now primary keys of each respective newTable
+        for determinant in functionalDependency.determinants:
+            determinant.isPrime = True
         #Add new table with functional dependency attributes and with the functional dependency itself
-        newAttrs = functionalDependency.determinants.union(functionalDependency.nonDeterminants)
-        newTable = Table(newAttrs, {functionalDependency})
+        newAttrs: set[A.Attribute] = functionalDependency.determinants.union(functionalDependency.nonDeterminants)
+        newTable: Table = Table(newAttrs, {functionalDependency})
         newTables.add(newTable)
     return newTables
         
