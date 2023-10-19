@@ -4,12 +4,14 @@ import Attribute as A
 import FunctionalDependency as FD
 
 class Table:
+    name: str
     attributes: set[A.Attribute]
     functionalDependencies: set[FD.FunctionalDependency]
     
-    def __init__(self, attributes: set[A.Attribute], functionalDependencies: set[FD.FunctionalDependency]) -> None:
+    def __init__(self, attributes: set[A.Attribute], functionalDependencies: set[FD.FunctionalDependency], name: str = "") -> None:
         self.attributes = attributes
         self.functionalDependencies = functionalDependencies
+        self.name = name
         
         
     def is1NF(self) -> bool:
