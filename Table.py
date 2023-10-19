@@ -37,7 +37,6 @@ class Table:
                     return True
         for functionalDependency in self.functionalDependencies:
             if not self.isSuperkey(functionalDependency.determinants):
-                
                 return False
         return True
 
@@ -47,10 +46,10 @@ class Table:
                 return False
         return True
     
-    def isSuperkey(self, attributes: list[A.Attribute]) -> bool:
+    def isSuperkey(self, attributes: set[A.Attribute]) -> bool:
         # Helper function to check if a set of attributes is a superkey
         if len(self.getPrimeAttributes()) > 0:
-            return set(attributes).issuperset(self.getPrimeAttributes()) 
+            return attributes.issuperset(self.getPrimeAttributes()) 
         else:
             return False
  
@@ -89,15 +88,13 @@ def normalizeTo1NF(table: Table) -> set[Table]:
         if attribute.dataType == "LIST":
             newDependent: set[A.Attribute] = {attribute}
             newFunctionalDependency: FD.FunctionalDependency = FD.FunctionalDependency(table.getPrimeAttributes(), newDependent)
-            newTable: Table = Table(table.getPrimeAttributes().union(newDependent), newFunctionalDependency)
+            newTable: Table = Table(table.getPrimeAttributes().union(newDependent), {newFunctionalDependency})
             newTables.add(newTable)
     return newTables
 
 def normalizeTo2NF(table: Table) -> set[Table]:
     if table.is2NF():
         return {table}
-    
-    # table = normalizeTo1NF(table)
 
     newTables: set[Table] = set()
     for functionalDependency in table.functionalDependencies:
@@ -132,22 +129,20 @@ def normalizeTo3NF(table: Table) -> set[Table]:
 def normalizeToBCNF(table: Table) -> set[Table]:
     if table.isBCNF():
         return {table}
-    
-    # table = normalizeToBCNF(table)
 
     newTables: set[Table] = set()
     for functionalDependency in table.functionalDependencies:
         #find the functional dependency that is not in BCNF
         if not table.isSuperkey(functionalDependency.determinants):
-            #R-A in the form of X->A in Relation R 
+            #R-A in the form of X->A in Relation R
             newAttrs = table.attributes.difference(functionalDependency.nonDeterminants)
-            newFunctionalDependency = FD.FunctionalDependency(newAttrs,newAttrs)
+            newFunctionalDependency = FD.FunctionalDependency(newAttrs, newAttrs)
             newTable = Table(newAttrs, {newFunctionalDependency})
-            newTables.add(newTable)
+            newTables.add(deepcopy(newTable))
             #XA in the form of X->A in Relation R
             newAttrs = functionalDependency.determinants.union(functionalDependency.nonDeterminants)
             newTable = Table(newAttrs, {functionalDependency})
-            newTables.add(newTable)
-
+            newTables.add(deepcopy(newTable))
+    return newTables
 
 
