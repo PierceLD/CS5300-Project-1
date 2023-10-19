@@ -21,15 +21,15 @@ def main():
 
     print(myTable)
     
-    print("Is the table in 2nf?",myTable.is2NF())
-    print("Is the table in 3nf?",myTable.is3NF())
+    
+    print("Is the table in bcnf?",myTable.isBCNF())
 
     normalized = table.normalizeTo3NF(myTable)
 
     for r in normalized:
         print(r)
-        print(r.is2NF())
-        print(r.is3NF())
+        
+        print("","is 3nf?" , r.is3NF())
 
 if __name__ == '__main__':
     main()
