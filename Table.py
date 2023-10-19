@@ -87,7 +87,7 @@ def normalizeTo1NF(table: Table) -> set[Table]:
      
     newTables: set[Table] = set()
     for attribute in table.attributes:
-        if attribute.dataType == "LIST":
+        if attribute.isMultiValued:
             newDependent: set[A.Attribute] = {attribute}
             newFunctionalDependency: FD.FunctionalDependency = FD.FunctionalDependency(table.getPrimeAttributes(), newDependent)
             newTable: Table = Table(table.getPrimeAttributes().union(newDependent), {newFunctionalDependency})
