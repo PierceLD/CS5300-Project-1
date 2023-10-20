@@ -13,14 +13,6 @@ class Table:
         self.functionalDependencies = functionalDependencies
         self.name = name
     
-    """ Helper function to return attributes as a set of strings in order
-        to make set() operations work correctly (i.e. issuperset(), issubset(), etc)
-        Input: self
-        Output: set of attribute names
-    """
-    def getAttributeNames(self) -> set[str]:
-        return set([attr.name for attr in self.attributes])
-    
     def is1NF(self) -> bool:
         for attribute in self.attributes:
             if attribute.isMultiValued:
@@ -31,12 +23,12 @@ class Table:
         if not self.is1NF:
             return False
         for functionalDependency in self.functionalDependencies:
-             if set(functionalDependency.determinants) != set(self.getPrimeAttributes()):
+            if set(functionalDependency.determinants) != set(self.getPrimeAttributes()):
                 for attribute in functionalDependency.determinants:
                     if attribute.isPrime:
                         return False
         return True
-                     
+
     def is3NF(self) -> bool:
         if not self.is2NF():
             return False
@@ -61,11 +53,19 @@ class Table:
             return attributes.issuperset(self.getPrimeAttributes()) 
         else:
             return False
- 
+
     def getPrimeAttributes(self) -> set[A.Attribute]:
         #gets all the prime attributes in the relation
         return {attr for attr in self.attributes if attr.isPrime}
-                     
+
+    """ Helper function to return attributes as a set of strings in order
+        to make set() operations work correctly (i.e. issuperset(), issubset(), etc)
+        Input: self
+        Output: set of attribute names
+    """
+    def getAttributeNames(self) -> set[str]:
+        return set([attr.name for attr in self.attributes])
+
     def __str__(self) -> str:
         if len(self.attributes) == 0:
             return "No attributes available."
