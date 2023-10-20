@@ -84,14 +84,16 @@ class Table:
 def normalizeTo1NF(table: Table) -> set[Table]:
     if table.is1NF():
         return {table}
-     
+
     newTables: set[Table] = set()
     for attribute in table.attributes:
         if attribute.isMultiValued:
+            attribute.isPrime = True # make the attribute a key value
             newDependent: set[A.Attribute] = {attribute}
             newFunctionalDependency: FD.FunctionalDependency = FD.FunctionalDependency(table.getPrimeAttributes(), newDependent)
-            newTable: Table = Table(table.getPrimeAttributes().union(newDependent), {newFunctionalDependency})
+            newTable: Table = Table(table.getPrimeAttributes().union(newDependent), {newFunctionalDependency}, table.name)
             newTables.add(newTable)
+
     return newTables
 
 def normalizeTo2NF(table: Table) -> set[Table]:
