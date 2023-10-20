@@ -5,10 +5,12 @@ import FunctionalDependency as FD
 
 class Table:
     attributes: set[A.Attribute]
+    primaryKey: set[A.Attribute]
     functionalDependencies: set[FD.FunctionalDependency]
     
-    def __init__(self, attributes: set[A.Attribute], functionalDependencies: set[FD.FunctionalDependency]) -> None:
+    def __init__(self, attributes: set[A.Attribute], primaryKey: set[A.Attribute], functionalDependencies: set[FD.FunctionalDependency]) -> None:
         self.attributes = attributes
+        self.primaryKey = primaryKey
         self.functionalDependencies = functionalDependencies
         
         
@@ -40,17 +42,27 @@ class Table:
                 return False
         return True
     
-    def is4NF(self) -> bool:
-        return True
-    
-    def is5NF(self) -> bool:
-        
-
     def isBCNF(self):
+        if not self.is3NF():
+            return False
         for functionalDependency in self.functionalDependencies:
             if not self.isSuperkey(functionalDependency.determinants):
                 return False
         return True
+    
+    def is4NF(self) -> bool:
+        if not self.isBCNF():
+            return False
+        for functionalDependency in self.functionalDependencies:
+            if functionalDependency.isMultiValued:
+                return False
+        return True
+    
+    def is5NF(self) -> bool:
+        if not self.is4NF():
+            return False
+        return False
+
     
     def isSuperkey(self, attributes: set[A.Attribute]) -> bool:
         # Helper function to check if a set of attributes is a superkey
@@ -62,6 +74,9 @@ class Table:
     def getPrimeAttributes(self) -> set[A.Attribute]:
         #gets all the prime attributes in the relation
         return {attr for attr in self.attributes if attr.isPrime}
+    
+    def isTrivialMultiValuedDependency(self, functionalDependency: FD.FunctionalDependency) -> bool:
+        return functionalDependency.isMultiValued and self.attributes is functionalDependency.determinants.union(functionalDependency.nonDeterminants)
                      
     def __str__(self) -> str:
         if len(self.attributes) == 0:
@@ -80,7 +95,7 @@ class Table:
 
 
         result += "Functional Dependencies:\n"
-        for fd in self.functionalDependencies:november
+        for fd in self.functionalDependencies:
             result+="\t" + fd.__str__() + "\n"
         return result
                 
@@ -151,4 +166,28 @@ def normalizeToBCNF(table: Table) -> set[Table]:
             newTables.add(deepcopy(newTable))
     return newTables
 
-
+def normalizeTo4NF(table: Table) -> set[Table]:
+    if table.is4NF():
+        return {table}
+    newTables: set[Table] = set()
+    removedAttributes: set[A.Attribute] = set()
+    nonMultiValuedDependency: set[FD.FunctionalDependency] = set()
+    for functionalDependency in table.functionalDependencies:
+        if not table.isTrivialMultiValuedDependency(functionalDependency):
+            #create new table that is trivial
+            newAttributes: set[A.Attribute] = deepcopy(functionalDependency.determinants.union(functionalDependency.nonDeterminants))
+            removedAttributes.add(functionalDependency.nonDeterminants)
+            newTable: Table =  Table(newAttributes, newAttributes, functionalDependency)
+            newTables.add(newTable)
+        elif not functionalDependency.isMultiValued:
+            nonMultiValuedDependency.add(functionalDependency)
+            
+    # make a new table that has all the removed attributes
+    newAttributes: set[A.Attribute] = table.attributes.difference(removedAttributes)
+    newPrimaryKey: set[A.Attribute] = deepcopy(table.primaryKey)
+    newTables.add(Table(newAttributes, newPrimaryKey, nonMultiValuedDependency))
+    return newTables
+    
+def normalizeTo5NF(table: Table) -> set[Table]:
+    if table.is5NF():
+        return {table}
