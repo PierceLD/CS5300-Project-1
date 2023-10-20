@@ -39,6 +39,12 @@ class Table:
             if not self.isSuperkey(functionalDependency.determinants):
                 return False
         return True
+    
+    def is4NF(self) -> bool:
+        return True
+    
+    def is5NF(self) -> bool:
+        
 
     def isBCNF(self):
         for functionalDependency in self.functionalDependencies:
@@ -74,7 +80,7 @@ class Table:
 
 
         result += "Functional Dependencies:\n"
-        for fd in self.functionalDependencies:
+        for fd in self.functionalDependencies:november
             result+="\t" + fd.__str__() + "\n"
         return result
                 
