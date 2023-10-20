@@ -29,3 +29,13 @@ class FunctionalDependency:
         returnString += "}"
         return returnString
 
+    """ Helper functions to return determinants as a set of strings in order
+        to make set() operations work correctly (i.e. issuperset(), issubset(), etc)
+        Input: self
+        Output: set of determinant/non-determinant names
+    """
+    def getDeterminantNames(self) -> set[str]:
+        return set([attr.name for attr in self.determinants])
+    
+    def getNonDeterminantNames(self) -> set[str]:
+        return set([attr.name for attr in self.nonDeterminants])

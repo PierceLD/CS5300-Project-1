@@ -12,8 +12,15 @@ class Table:
         self.attributes = attributes
         self.functionalDependencies = functionalDependencies
         self.name = name
-        
-        
+    
+    """ Helper function to return attributes as a set of strings in order
+        to make set() operations work correctly (i.e. issuperset(), issubset(), etc)
+        Input: self
+        Output: set of attribute names
+    """
+    def getAttributeNames(self) -> set[str]:
+        return set([attr.name for attr in self.attributes])
+    
     def is1NF(self) -> bool:
         for attribute in self.attributes:
             if attribute.isMultiValued:
@@ -102,9 +109,6 @@ def normalizeTo2NF(table: Table) -> set[Table]:
 
     newTables: set[Table] = set()
     for functionalDependency in table.functionalDependencies:
-        # all determinants are now primary keys of each respective newTable
-        for determinant in functionalDependency.determinants:
-            determinant.isPrime = True
         #Add new table with functional dependency attributes and with the functional dependency itself
         newAttrs: set[A.Attribute] = functionalDependency.determinants.union(functionalDependency.nonDeterminants)
         newTable: Table = Table(newAttrs, {functionalDependency})
