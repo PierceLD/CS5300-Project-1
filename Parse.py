@@ -25,8 +25,6 @@ def csvParse(filename: str) -> list[A.Attribute]:
             d_type: str = getDataType(val[0])
             attributes.append(A.Attribute(name=headings[i], isMultiValued=multVals, dataType=d_type))
 
-        #for attr in headings: # getting each column attribute from first row of .csv file
-            #attributes.append(A.Attribute(attr))
         csv_file.close()
 
     return attributes
@@ -39,15 +37,11 @@ def csvParse(filename: str) -> list[A.Attribute]:
 def getDataType(data_val: str) -> str:
     is_date = re.search("^([1-9]|(1[0-2]))/([1-9]|(1[0-9])|(2[0-9])|(3[0-1]))/[0-9]{4}$", data_val)
     is_integer = re.search("^-?[0-9]+$", data_val)
-    is_float = re.search("^-?[0-9]+\.[0-9]+$", data_val)
-    #is_string = re.search(".*$", data_val)
     
     if is_date:
         return "DATE"
     elif is_integer:
         return "INT"
-    elif is_float:
-        return "FLOAT"
     
     return "VARCHAR" # if not a date or a number or can't determine it, then just assume a string
 
@@ -58,7 +52,7 @@ def getDataType(data_val: str) -> str:
 def keyParse(key: str) -> set[str]:
     key_set: set[str] = set()
 
-    parsed_key = [x.strip() for x in key.split(',')]
+    parsed_key: list[str] = [x.strip() for x in key.split(',')]
     
     for k in parsed_key:
         key_set.add(k)
