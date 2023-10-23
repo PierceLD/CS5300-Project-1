@@ -21,17 +21,18 @@ if __name__ == "__main__":
 
     # get input table name from file name
     table_name: str = file.split(".")[0].capitalize()
-    print(table_name)
 
     # get Primary Key of table
     print("Key (can be composite):")
     key: str = input()
     key_set: set[str] = P.keyParse(key)
+    primary_key: set[A.Attribute] = {}
 
     # set isPrime to true for any attribute in the primary key
     for attr in attributes:
         if attr.name in key_set:
             attr.isPrime = True
+            primary_key.add(attr)
 
     # get functional dependencies and parse determinants and dependents
     print("Input Functional Dependencies (type “exit” and hit enter to complete your dependency list):")
@@ -46,13 +47,9 @@ if __name__ == "__main__":
     parsed_fd_list = P.fdParse(fd_list, key_set) # list of FDs used to create Table object
 
     # create the Table object with Attributes and FDs
-    table: T.Table = T.Table(attributes, parsed_fd_list, table_name)
+    table: T.Table = T.Table(attributes, primary_key, parsed_fd_list, table_name)
     # create DatabaseSchema object and add the table to it
     DB_schema: D.DatabaseSchema = D.DatabaseSchema(table)
-    print(table)
-    
-    oneNFTable: T.Table = T.normalizeTo1NF(table)
-    print(oneNFTable)
 
     # normalizing the DB schema
     print("Choice of the highest normal form to reach (1: 1NF, 2: 2NF, 3: 3NF, B: BCNF, 4: 4NF, 5: 5NF):")
