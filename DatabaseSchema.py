@@ -212,6 +212,12 @@ def findForeignKeys(databaseSchema: DatabaseSchema, table: T.Table) -> list[str]
 
     return queries
 
+""" This function creates a reference table for a many-to-many
+    relationship, which is determined by the primary key of the
+    original relation being composite.
+    Input: Database schema object
+    Output: String with SQL query to create a reference table, if any
+"""
 def createReferenceTable(databaseSchema: DatabaseSchema) -> list[str]:
     original_PK: set[tuple[str, str]] = set([(attr.name, attr.dataType) for attr in databaseSchema.original_table.primaryKey])
     table_query: str = ""
