@@ -1,5 +1,7 @@
 # basically just a list of tables (needs to be changed to tables)
 import Table as T
+import Attribute as A
+import FunctionalDependency as FD
 from copy import deepcopy
 
 class DatabaseSchema:
@@ -51,6 +53,36 @@ class DatabaseSchema:
             print("1NF")
         else:
             print("None. Input table does not satisfy any normal form.")
+
+    """ Creates the SQL Queries and outputs them to SQLQueries.txt
+    """
+    def createSQLQueries(self) -> None:
+        with open("SQLQueries.txt", "w") as f:
+            for table in self.tables:
+                print(f"CREATE TABLE {table.name} (", file=f)
+                for attr in table.attributes:
+                    if attr.dataType == "VARCHAR":
+                        s: str = f"\t{attr.name} {attr.dataType}(100)"
+                    else:
+                        s = f"\t{attr.name} {attr.dataType}"
+                    if attr.isPrime:
+                        s += " PRIMARY KEY,"
+                    else:
+                        s += ","
+                    print(s, file=f)
+                # determine foreign key attributes, create a new function
+                fk_queries: list[str] = findForeignKeys(self, table)
+                for i in range(len(fk_queries)):
+                    if i == len(fk_queries)-1: # if last query
+                        print(fk_queries[i], file=f)
+                    else:
+                        print(fk_queries[i] + ",", file=f)
+                print(");", file=f)
+            # create many-to-many relation table if original primary key is composite
+            print(createReferenceTable(self), file=f)
+            print(self.findHighestNF(), file=f)
+                
+        return
 
     """ Pretty print all tables
         Input: self
@@ -161,10 +193,65 @@ def normalizeTo5NF(databaseSchema: DatabaseSchema) -> list[T.Table]:
     
     return normalizedDatabaseSchema
 """
+""" Creates foreign key constraints for inputted table, if any exist
+    Input: DatabaseSchema, table
+    Output: list of SQL queries to create foreign key constraints for input table
+"""
+def findForeignKeys(databaseSchema: DatabaseSchema, table: T.Table) -> list[str]:
+    queries: list[str] = []
+    fk_query: str = ""
 
-def createSQLQueries(databaseSchema: DatabaseSchema):
-    
-    for table in databaseSchema.tables:
-        pass
+    for t in databaseSchema.tables:
+        if t.name != table.name: # skip over same table
+            for attr1 in table.attributes:
+                if not attr1.isPrime(): # if attribute is non-prime
+                    for attr2 in t.attributes:
+                        if attr2.isPrime and (attr1.name == attr2.name): # if attribute is a primary key in another table
+                            fk_query = f"FOREIGN KEY ({attr1.name}) REFERENCES {t.name}s({attr2.name})"
+                            queries.append(fk_query)
 
-    return
+    return queries
+
+def createReferenceTable(databaseSchema: DatabaseSchema) -> list[str]:
+    original_PK: set[tuple[str, str]] = set([(attr.name, attr.dataType) for attr in databaseSchema.original_table.primaryKey])
+    table_query: str = ""
+    ref_table_name: str = ""
+    ref_table_attributes: list[tuple[str, str]] = []
+    if len(original_PK) > 1: # composite key indicates many to many relationship
+
+        # first find the tables to reference
+        disconnected_tables: list[T.Table] = []
+        for table in databaseSchema.tables:
+            table_PK: set[str] = set([key.name for key in table.primaryKey])
+            if table_PK < original_PK: # if current table's PK is a proper subset of original PK (means original relation was split)
+                disconnected_tables.append(table)
+
+        # create reference relation for the disconnected tables
+        table_query += "CREATE TABLE "
+        for table in disconnected_tables:
+            ref_table_name += table.name
+        table_query += f"{ref_table_name}s (\n"
+
+        # find attributes for reference relation
+        for table in disconnected_tables:
+            for key in table.primaryKey:
+                ref_table_attributes.append((key.name, key.dataType))
+
+        # create SQL attribute declarations
+        for attr in ref_table_attributes:
+            if key.dataType == "VARCHAR":
+                table_query += f"\t{attr.name} {attr.dataType}(100),\n"
+            else:
+                table_query += f"\t{attr.name} {attr.dataType},\n"
+
+        # create foreign key constraints
+        for table, i in enumerate(disconnected_tables):
+            for key, j in enumerate(table.primaryKey):
+                if (i == len(disconnected_tables)-1) and (j == len(disconnected_tables)-1): # if very last SQL statement
+                    table_query += f"FOREIGN KEY ({key.name}) REFERENCES {table.name}s({key.name})\n"
+                else:
+                    table_query += f"FOREIGN KEY ({key.name}) REFERENCES {table.name}s({key.name}),\n"
+
+        table_query += ");\n"
+
+    return table_query
