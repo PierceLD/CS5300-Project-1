@@ -52,6 +52,9 @@ def main():
     if find_hnf == '1':
         DB_schema.findHighestNF()
 
+    # create the SQL Queries for the DB schema
+    DB_schema.createSQLQueries()
+
 
 if __name__ == "__main__":
     main()
