@@ -166,7 +166,7 @@ def normalizeToBCNF(databaseSchema: DatabaseSchema) -> list[T.Table]:
             normalizedDatabaseSchema.append(n_table)
     
     return normalizedDatabaseSchema
-""" Add back in when 4NF and 5NF functions are made
+
 def normalizeTo4NF(databaseSchema: DatabaseSchema) -> list[T.Table]:
     normalizedDatabaseSchema: list[T.Table] = []
     normalized_tables: set[T.Table]
@@ -192,7 +192,7 @@ def normalizeTo5NF(databaseSchema: DatabaseSchema) -> list[T.Table]:
             normalizedDatabaseSchema.append(n_table)
     
     return normalizedDatabaseSchema
-"""
+
 """ Creates foreign key constraints for inputted table, if any exist
     Input: DatabaseSchema, table
     Output: list of SQL queries to create foreign key constraints for input table
