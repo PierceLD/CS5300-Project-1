@@ -3,17 +3,8 @@ import FunctionalDependency as FD
 import Attribute as A
 import Parse as P
 import Table as T
-"""
-name: Attribute.Attribute = Attribute.Attribute("name")
-age: Attribute.Attribute = Attribute.Attribute("age")
-primeAttributes: list[Attribute.Attribute] = [name]
-nonPrimeAttributes: list[Attribute.Attribute] = [name]
-functionalDependency: FunctionalDependency.FunctionalDependency = FunctionalDependency.FunctionalDependency(primeAttributes, nonPrimeAttributes)
-print(name)
-print(functionalDependency)
-"""
-if __name__ == "__main__":
 
+def main():
     # get input data file and parse data to get attributes
     print("Input dataset:")
     file: str = input()
@@ -60,3 +51,7 @@ if __name__ == "__main__":
     find_hnf: str = input()
     if find_hnf == '1':
         DB_schema.findHighestNF()
+
+
+if __name__ == "__main__":
+    main()
