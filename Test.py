@@ -37,6 +37,8 @@ def main():
 
     for r in normalized:
         print(r)
+        # for a in r.attributes:
+        #     print(a, a.isPrime)
         print(r.isBCNF())
         
 
