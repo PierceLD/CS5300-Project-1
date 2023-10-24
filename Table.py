@@ -9,9 +9,9 @@ class Table:
     primaryKey: set[A.Attribute]
     functionalDependencies: set[FD.FunctionalDependency]
     
-    def __init__(self, attributes: set[A.Attribute], primaryKey: set[A.Attribute], functionalDependencies: set[FD.FunctionalDependency], name: str = "") -> None:
+    def __init__(self, attributes: set[A.Attribute], functionalDependencies: set[FD.FunctionalDependency], name: str = "") -> None:
         self.attributes = attributes
-        self.primaryKey = primaryKey
+        self.primaryKey = self.getPrimeAttributes()
         self.functionalDependencies = functionalDependencies
         self.name = name
     
@@ -169,12 +169,22 @@ def normalizeToBCNF(table: Table) -> set[Table]:
             #R-A in the form of X->A in Relation R
             newAttrs = table.attributes.difference(functionalDependency.nonDeterminants)
             newFunctionalDependency = FD.FunctionalDependency(newAttrs, newAttrs)
-            newTable = Table(newAttrs, {newFunctionalDependency})
-            newTables.add(deepcopy(newTable))
+            newTable = deepcopy(Table(newAttrs, {newFunctionalDependency}))
+            for dependency in newTable.functionalDependencies:
+                if dependency.determinants == dependency.nonDeterminants:
+                    for attr in dependency.determinants:
+                        attr.isPrime = True
+            newTables.add(newTable)
             #XA in the form of X->A in Relation R
             newAttrs = functionalDependency.determinants.union(functionalDependency.nonDeterminants)
-            newTable = Table(newAttrs, {functionalDependency})
-            newTables.add(deepcopy(newTable))
+            newTable = deepcopy(Table(newAttrs, {functionalDependency}))
+           
+            for dependency in newTable.functionalDependencies:
+                for attr in dependency.determinants:
+                    attr.isPrime = True
+                for attr in dependency.nonDeterminants:
+                    attr.isPrime = False
+            newTables.add(newTable)
     return newTables
 
 def normalizeTo4NF(table: Table) -> set[Table]:
