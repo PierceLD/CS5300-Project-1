@@ -26,7 +26,7 @@ class Table:
             return False
         for functionalDependency in self.functionalDependencies:
             # if any of the determinants are a proper subset of the primary key (indicates partial FD)
-            if functionalDependency.getDeterminantNames < set([key.name for key in self.primaryKey]):
+            if functionalDependency.getDeterminantNames() < set([key.name for key in self.primaryKey]):
                 return False
         return True
 
@@ -131,13 +131,46 @@ def normalizeTo1NF(table: Table) -> set[Table]:
 def normalizeTo2NF(table: Table) -> set[Table]:
     if table.is2NF():
         return {table}
+    
+    newTables: set[Table] = set()
+    originalTable: Table = deepcopy(table)
+    # go thru FDs to find full FDs, where determinant = primary key, and partial FDs first
+    for functionalDependency in originalTable.functionalDependencies:
+        # if it's a full FD with determinant == primary key, just make a new table with all attributes from FD
+        if functionalDependency.getDeterminantNames() == set([key.name for key in originalTable.primaryKey]):
+            newAttrs: set[A.Attribute] = functionalDependency.determinants.union(functionalDependency.nonDeterminants)
+            newTable: Table = Table(newAttrs, {functionalDependency}, originalTable.name) # new table's name is same as original table's
+            newTables.add(newTable)
+        # if it's a partial FD where determinant is proper subset of primary key
+        elif functionalDependency.getDeterminantNames() < set([key.name for key in originalTable.primaryKey]):
+            newAttrs: set[A.Attribute] = functionalDependency.determinants.union(functionalDependency.nonDeterminants)
+            primeAttributes: list[str] = [attr.name for attr in newAttrs if attr.isPrime]
+            newTableName: str = "".join(primeAttributes)
+            newTable: Table = Table(newAttrs, {functionalDependency}, newTableName)
+            newTables.add(newTable)
 
+    # loop through FDs again to find transitive FDs, where determinant is not a subset of primary key
+    for functionalDependency in originalTable.functionalDependencies:
+        s1: set[A.Attribute] = functionalDependency.getDeterminantNames()
+        s2: set[A.Attribute] = set([key.name for key in originalTable.primaryKey])
+        if s1.difference(s2) == s1: # if current FD determinant is not in primary key (indicating transitive FD)
+            for t in newTables:
+                newFDs: set[FD.FunctionalDependency] = set()
+                for fd in t.functionalDependencies:
+                    # if current FD determinant is in any of the newTable's FD non-determinants
+                    if functionalDependency.getDeterminantNames().issubset(fd.getNonDeterminantNames()):
+                        # add current FD to newTable FD list and add attributes newTable attribute list
+                        t.attributes = t.attributes.union(functionalDependency.nonDeterminants)
+                        newFDs.add(functionalDependency)
+                t.functionalDependencies = t.functionalDependencies.union(newFDs)
+
+    """
     newTables: set[Table] = set()
     for functionalDependency in table.functionalDependencies:
         #Add new table with functional dependency attributes and with the functional dependency itself
         newAttrs: set[A.Attribute] = functionalDependency.determinants.union(functionalDependency.nonDeterminants)
         newTable: Table = Table(newAttrs, {functionalDependency})
-        newTables.add(newTable)
+        newTables.add(newTable)"""
     return newTables
         
 def normalizeTo3NF(table: Table) -> set[Table]:
