@@ -25,10 +25,9 @@ class Table:
         if not self.is1NF:
             return False
         for functionalDependency in self.functionalDependencies:
-            if set(functionalDependency.determinants) != set(self.getPrimeAttributes()):
-                for attribute in functionalDependency.determinants:
-                    if attribute.isPrime:
-                        return False
+            # if any of the determinants are a proper subset of the primary key (indicates partial FD)
+            if functionalDependency.getDeterminantNames < set([key.name for key in self.primaryKey]):
+                return False
         return True
 
     def is3NF(self) -> bool:
@@ -111,7 +110,7 @@ class Table:
 """ The following are the normalization functions (1NF to 5NF)
     for each table.
     Input: A relation table
-    Output: A set of relation tables
+    Output: The decomposed relation table in specified normal form
 """
 def normalizeTo1NF(table: Table) -> set[Table]:
     if table.is1NF():
