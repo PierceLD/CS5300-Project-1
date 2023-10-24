@@ -27,48 +27,55 @@ class DatabaseSchema:
             self.tables = normalizeTo3NF(self)
         elif normal_form == 'B':
             self.tables = normalizeToBCNF(self)
-        #elif normal_form == '4':
-        #    self.tables = normalizeTo4NF(self)
-        #elif normal_form == '5':
-        #    self.tables = normalizeTo5NF(self)
+        elif normal_form == '4':
+            self.tables = normalizeTo4NF(self)
+        elif normal_form == '5':
+            self.tables = normalizeTo5NF(self)
     
     """ Finds the highest specified normal form of the input table using Table
         methods on self.original_table
         Input: self
-        Output: None
+        Output: output string
     """
-    def findHighestNF(self) -> None:
-        print("Highest normal form of the input table: ", end="")
-        #if self.original_table.is5NF():
-            #print("5NF")
-        #elif self.original_table.is4NF():
-            #print("4NF")
-        if self.original_table.isBCNF():
-            print("BCNF")
+    def findHighestNF(self) -> str:
+        output: str = "Highest normal form of the input table: "
+
+        if self.original_table.is5NF():
+            output += "5NF"
+        elif self.original_table.is4NF():
+            output += "4NF"
+        elif self.original_table.isBCNF():
+            output += "BCNF"
         elif self.original_table.is3NF():
-            print("3NF")
+            output += "3NF"
         elif self.original_table.is2NF():
-            print("2NF")
+            output += "2NF"
         elif self.original_table.is1NF():
-            print("1NF")
+            output += "1NF"
         else:
-            print("None. Input table does not satisfy any normal form.")
+            output += "None. Input table does not satisfy any normal form."
+        
+        return output
 
     """ Creates the SQL Queries and outputs them to SQLQueries.txt
     """
-    def createSQLQueries(self) -> None:
+    def createSQLQueries(self, find_hnf: str) -> None:
         with open("SQLQueries.txt", "w") as f:
             for table in self.tables:
                 print(f"CREATE TABLE {table.name} (", file=f)
-                for attr in table.attributes:
+                for i, attr in enumerate(table.attributes):
                     if attr.dataType == "VARCHAR":
                         s: str = f"\t{attr.name} {attr.dataType}(100)"
                     else:
                         s = f"\t{attr.name} {attr.dataType}"
                     if attr.isPrime:
-                        s += " PRIMARY KEY,"
+                        if i == len(table.attributes) - 1: # if last attribute to print
+                            s += " PRIMARY KEY"
+                        else:
+                            s += " PRIMARY KEY,"
                     else:
-                        s += ","
+                        if i != len(table.attributes) - 1: # if not last attribute to print
+                            s += ","
                     print(s, file=f)
                 # determine foreign key attributes, create a new function
                 fk_queries: list[str] = findForeignKeys(self, table)
@@ -80,7 +87,8 @@ class DatabaseSchema:
                 print(");", file=f)
             # create many-to-many relation table if original primary key is composite
             print(createReferenceTable(self), file=f)
-            print(self.findHighestNF(), file=f)
+            if find_hnf == "1":
+                print(self.findHighestNF(), file=f)
                 
         return
 
@@ -223,7 +231,7 @@ def createReferenceTable(databaseSchema: DatabaseSchema) -> list[str]:
     table_query: str = ""
     ref_table_name: str = ""
     ref_table_attributes: list[tuple[str, str]] = []
-    if len(original_PK) > 1: # composite key indicates many to many relationship
+    if (len(original_PK) > 1) and (len(databaseSchema.tables) > 1): # composite key indicates many to many relationship, if decomposed to 2NF
 
         # first find the tables to reference
         disconnected_tables: list[T.Table] = []
@@ -251,8 +259,8 @@ def createReferenceTable(databaseSchema: DatabaseSchema) -> list[str]:
                 table_query += f"\t{attr.name} {attr.dataType},\n"
 
         # create foreign key constraints
-        for table, i in enumerate(disconnected_tables):
-            for key, j in enumerate(table.primaryKey):
+        for i, table in enumerate(disconnected_tables):
+            for j, key in enumerate(table.primaryKey):
                 if (i == len(disconnected_tables)-1) and (j == len(disconnected_tables)-1): # if very last SQL statement
                     table_query += f"FOREIGN KEY ({key.name}) REFERENCES {table.name}s({key.name})\n"
                 else:
