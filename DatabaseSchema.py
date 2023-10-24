@@ -4,6 +4,16 @@ import Attribute as A
 import FunctionalDependency as FD
 from copy import deepcopy
 
+from enum import Enum
+
+class NormalForm(Enum):
+    oneNF = [T.normalizeTo1NF]
+    twoNF = [T.normalizeTo2NF]
+    threeNF = [T.normalizeTo3NF]
+    bcNF = [T.normalizeToBCNF]
+    fourNF = [T.normalizeTo4NF]
+    fiveNF = [T.normalizeTo5NF]
+    
 class DatabaseSchema:
     original_table: T.Table
     tables: list[T.Table]
@@ -181,6 +191,19 @@ def normalizeTo4NF(databaseSchema: DatabaseSchema) -> list[T.Table]:
     return normalizedDatabaseSchema
 
 def normalizeTo5NF(databaseSchema: DatabaseSchema) -> list[T.Table]:
+    normalizedDatabaseSchema: list[T.Table] = []
+    normalized_tables: set[T.Table]
+
+    databaseSchema.tables = normalizeTo4NF(databaseSchema)
+
+    for table in databaseSchema.tables: # normalize each table in schema to 5NF
+        normalized_tables = T.normalizeTo5NF(table) 
+        for n_table in normalized_tables: # store each newly normalized table
+            normalizedDatabaseSchema.append(n_table)
+    
+    return normalizedDatabaseSchema
+
+def normalize(databaseSchema: DatabaseSchema, normalForm: NormalForm) -> DatabaseSchema:
     normalizedDatabaseSchema: list[T.Table] = []
     normalized_tables: set[T.Table]
 

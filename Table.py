@@ -14,6 +14,8 @@ class Table:
         self.primaryKey = primaryKey
         self.functionalDependencies = functionalDependencies
         self.name = name
+        
+    # def TableDeepCopy(self, attributes: set[A.Attribute], primaryKey: set[A.Attribute], functionalDependencies: set[FD.FunctionalDependency], name: str = "") -> Table:
     
     def is1NF(self) -> bool:
         for attribute in self.attributes:
@@ -22,7 +24,7 @@ class Table:
         return True
     
     def is2NF(self) -> bool:
-        if not self.is1NF:
+        if not self.is1NF():
             return False
         for functionalDependency in self.functionalDependencies:
             if set(functionalDependency.determinants) != set(self.getPrimeAttributes()):
@@ -114,14 +116,18 @@ def normalizeTo1NF(table: Table) -> set[Table]:
         return {table}
 
     newTables: set[Table] = set()
+    multiValuedAttributes: set[A.Attribute] = set()
     for attribute in table.attributes:
         if attribute.isMultiValued:
+            multiValuedAttributes.add(attribute)
             attribute.isPrime = True # make the attribute a key value
             newDependent: set[A.Attribute] = {attribute}
-            newFunctionalDependency: FD.FunctionalDependency = FD.FunctionalDependency(table.getPrimeAttributes(), newDependent)
-            newTable: Table = Table(table.getPrimeAttributes().union(newDependent), {newFunctionalDependency}, table.name)
+            newFunctionalDependency: FD.FunctionalDependency = FD.FunctionalDependency(table.primaryKey, newDependent)
+            newPrimaryKey: set[A.Attribute] = table.primaryKey.union(attribute)
+            newTable: Table = Table(table.getPrimeAttributes().union(newDependent), newPrimaryKey, {newFunctionalDependency}, table.name)
             newTables.add(newTable)
 
+    newTable: Table = Table()
     return newTables
 
 def normalizeTo2NF(table: Table) -> set[Table]:
