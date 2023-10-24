@@ -17,13 +17,11 @@ def main():
     print("Key (can be composite):")
     key: str = input()
     key_set: set[str] = P.keyParse(key)
-    primary_key: set[A.Attribute] = {}
 
     # set isPrime to true for any attribute in the primary key
     for attr in attributes:
         if attr.name in key_set:
             attr.isPrime = True
-            primary_key.add(attr)
 
     # get functional dependencies and parse determinants and dependents
     print("Input Functional Dependencies (type “exit” and hit enter to complete your dependency list):")
@@ -38,7 +36,7 @@ def main():
     parsed_fd_list = P.fdParse(fd_list, key_set) # list of FDs used to create Table object
 
     # create the Table object with Attributes and FDs
-    table: T.Table = T.Table(attributes, primary_key, parsed_fd_list, table_name)
+    table: T.Table = T.Table(attributes, parsed_fd_list, table_name)
     # create DatabaseSchema object and add the table to it
     DB_schema: D.DatabaseSchema = D.DatabaseSchema(table)
 
