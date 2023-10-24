@@ -32,7 +32,6 @@ def main():
         fd = input()
         if fd != "exit":
             fd_list.append(fd)
-    print(fd_list)
     parsed_fd_list = P.fdParse(fd_list, key_set) # list of FDs used to create Table object
 
     # create the Table object with Attributes and FDs
@@ -51,7 +50,7 @@ def main():
         DB_schema.findHighestNF()
 
     # create the SQL Queries for the DB schema
-    DB_schema.createSQLQueries()
+    DB_schema.createSQLQueries(find_hnf)
 
 
 if __name__ == "__main__":
