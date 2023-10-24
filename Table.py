@@ -108,21 +108,26 @@ class Table:
             result+="\t" + fd.__str__() + "\n"
         return result
                 
-
+""" The following are the normalization functions (1NF to 5NF)
+    for each table.
+    Input: A relation table
+    Output: A set of relation tables
+"""
 def normalizeTo1NF(table: Table) -> set[Table]:
     if table.is1NF():
         return {table}
 
-    newTables: set[Table] = set()
-    for attribute in table.attributes:
-        if attribute.isMultiValued:
-            attribute.isPrime = True # make the attribute a key value
-            newDependent: set[A.Attribute] = {attribute}
-            newFunctionalDependency: FD.FunctionalDependency = FD.FunctionalDependency(table.getPrimeAttributes(), newDependent)
-            newTable: Table = Table(table.getPrimeAttributes().union(newDependent), {newFunctionalDependency}, table.name)
-            newTables.add(newTable)
+    newTable: Table = deepcopy(table) # create a new copy of the table
 
-    return newTables
+    for attribute in newTable.attributes:
+        if attribute.isMultiValued:
+            attribute.isPrime = True # make the attribute a key value and not multi-valued
+            attribute.isMultiValued = False
+            if attribute.name[-1] == 's': # make it singular if it's plural
+                attribute.name = attribute.name[:-1]
+            newTable.primaryKey.add(attribute) # add the attribute to the table's primary key
+
+    return {newTable}
 
 def normalizeTo2NF(table: Table) -> set[Table]:
     if table.is2NF():
