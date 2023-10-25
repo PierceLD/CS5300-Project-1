@@ -16,7 +16,7 @@ def csvParse(filename: str) -> set[A.Attribute]:
         tuple1: list[str] = next(csv_reader) # gets first line of data
         # determines SQL data type for each attribute based on data vals in first tuple of the table
         for i, val in enumerate(tuple1):
-            val = val.split(' ') # splits data string into a list to check for multiple values
+            val = val.split(',') # splits data string into a list to check for multiple values
             if len(val) > 1: # if attribute is multi valued
                 multVals: bool = True
             else:
