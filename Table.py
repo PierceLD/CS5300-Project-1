@@ -33,20 +33,24 @@ class Table:
     def is3NF(self) -> bool:
         if not self.is2NF():
             return False
+
+        # check for each FD if determinant is a superkey or if dependent is a prime attribute
         for functionalDependency in self.functionalDependencies:
-            for attr in functionalDependency.nonDeterminants:
-                if attr.isPrime == True:
-                    return True
-        for functionalDependency in self.functionalDependencies:
-            if not self.isSuperkey(functionalDependency.determinants):
+            determinant_not_superkey: bool = not self.isSuperkey(functionalDependency.determinants)
+            non_determinant_not_prime: bool = True
+            for attr in functionalDependency.nonDeterminants: # find out if non-determinant is prime or not
+                if attr.isPrime:
+                    non_determinant_not_prime = False
+            if determinant_not_superkey and non_determinant_not_prime: # if all attributes in FD are non-prime, indicates a transitive FD
                 return False
+
         return True
     
     def isBCNF(self):
         if not self.is3NF():
             return False
         for functionalDependency in self.functionalDependencies:
-            if not self.isSuperkey(functionalDependency.determinants):
+            if not self.isSuperkey(functionalDependency.determinants): # if the FD determinant is not a superkey, violates BCNF constraint
                 return False
         return True
     
@@ -140,7 +144,7 @@ def normalizeTo2NF(table: Table) -> set[Table]:
         if functionalDependency.getDeterminantNames() == set([key.name for key in originalTable.primaryKey]):
             newAttrs: set[A.Attribute] = functionalDependency.determinants.union(functionalDependency.nonDeterminants)
             newTable: Table = Table(newAttrs, {functionalDependency}, originalTable.name) # new table's name is same as original table's
-            newTables.add(newTable)
+            newTables.add(deepcopy(newTable))
         # if it's a partial FD where determinant is proper subset of primary key
         elif functionalDependency.getDeterminantNames() < set([key.name for key in originalTable.primaryKey]):
             newAttrs: set[A.Attribute] = functionalDependency.determinants.union(functionalDependency.nonDeterminants)
@@ -149,7 +153,7 @@ def normalizeTo2NF(table: Table) -> set[Table]:
             if originalTable.name in newTableName:
                 newTableName = originalTable.name
             newTable: Table = Table(newAttrs, {functionalDependency}, newTableName)
-            newTables.add(newTable)
+            newTables.add(deepcopy(newTable))
 
     # loop through FDs again to find transitive FDs, where determinant is not a subset of primary key
     for functionalDependency in originalTable.functionalDependencies:
@@ -171,23 +175,27 @@ def normalizeTo2NF(table: Table) -> set[Table]:
 def normalizeTo3NF(table: Table) -> set[Table]:
     if table.is3NF():
         return {table}
-    #TODO: fix line below. normalizeToXNF returns a set when we only want to normalize one table at a time. add another for loop? idk
-    #We should do this kind of stuff in Main
-    # table = normalizeTo2NF(table)
 
     newTables: set[Table] = set()
-    for functionalDependency in table.functionalDependencies:
+    originalTable = deepcopy(table)
+    for functionalDependency in originalTable.functionalDependencies:
         #Add new table with functional dependency attributes and with the functional dependency itself
-        newAttrs = functionalDependency.determinants.union(functionalDependency.nonDeterminants)
-        newTable = Table(newAttrs, {functionalDependency})
+        newAttrs: set[FD.FunctionalDependency] = functionalDependency.determinants.union(functionalDependency.nonDeterminants)
+        newTable: Table = Table(newAttrs, {functionalDependency})
         newTables.add(deepcopy(newTable))
 
     for relation in newTables:
         for dependency in relation.functionalDependencies:
             for attr in dependency.determinants:
                 attr.isPrime = True
-            
-        
+                relation.primaryKey.add(attr) # add attribute to table's PK
+        primeAttributes: list[str] = [attr.name for attr in relation.attributes if attr.isPrime]
+        newTableName: str = "".join(primeAttributes)
+        if originalTable.name in newTableName: # if new table has same PK as original table
+            relation.name = originalTable.name
+        else:
+            relation.name = newTableName
+
     return newTables
 
 def normalizeToBCNF(table: Table) -> set[Table]:
@@ -210,7 +218,7 @@ def normalizeToBCNF(table: Table) -> set[Table]:
             #XA in the form of X->A in Relation R
             newAttrs = functionalDependency.determinants.union(functionalDependency.nonDeterminants)
             newTable = deepcopy(Table(newAttrs, {functionalDependency}))
-           
+
             for dependency in newTable.functionalDependencies:
                 for attr in dependency.determinants:
                     attr.isPrime = True
