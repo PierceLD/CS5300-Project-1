@@ -20,7 +20,6 @@ def main():
 
     # set isPrime to true for any attribute in the primary key
     for attr in attributes:
-        print("Name:", attr.name, "Type:", attr.dataType)
         if attr.name in key_set:
             attr.isPrime = True
 
@@ -34,8 +33,6 @@ def main():
         if fd != "exit":
             fd_list.append(fd)
     parsed_fd_list = P.fdParse(fd_list, key_set, attributes) # list of FDs used to create Table object
-
-
 
     # create the Table object with Attributes and FDs
     table: T.Table = T.Table(attributes, parsed_fd_list, table_name)
