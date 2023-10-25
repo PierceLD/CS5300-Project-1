@@ -146,6 +146,8 @@ def normalizeTo2NF(table: Table) -> set[Table]:
             newAttrs: set[A.Attribute] = functionalDependency.determinants.union(functionalDependency.nonDeterminants)
             primeAttributes: list[str] = [attr.name for attr in newAttrs if attr.isPrime]
             newTableName: str = "".join(primeAttributes)
+            if originalTable.name in newTableName:
+                newTableName = originalTable.name
             newTable: Table = Table(newAttrs, {functionalDependency}, newTableName)
             newTables.add(newTable)
 
@@ -164,13 +166,6 @@ def normalizeTo2NF(table: Table) -> set[Table]:
                         newFDs.add(functionalDependency)
                 t.functionalDependencies = t.functionalDependencies.union(newFDs)
 
-    """
-    newTables: set[Table] = set()
-    for functionalDependency in table.functionalDependencies:
-        #Add new table with functional dependency attributes and with the functional dependency itself
-        newAttrs: set[A.Attribute] = functionalDependency.determinants.union(functionalDependency.nonDeterminants)
-        newTable: Table = Table(newAttrs, {functionalDependency})
-        newTables.add(newTable)"""
     return newTables
         
 def normalizeTo3NF(table: Table) -> set[Table]:
