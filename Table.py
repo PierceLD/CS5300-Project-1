@@ -150,9 +150,9 @@ def normalizeTo2NF(table: Table) -> set[Table]:
             newAttrs: set[A.Attribute] = functionalDependency.determinants.union(functionalDependency.nonDeterminants)
             primeAttributes: list[str] = [attr.name for attr in newAttrs if attr.isPrime]
             newTableName: str = "".join(primeAttributes)
-            if originalTable.name in newTableName:
-                newTableName = originalTable.name
-            newTable: Table = Table(newAttrs, {functionalDependency}, newTableName)
+            if originalTable.name[:-1] in newTableName:
+                newTableName = originalTable.name[:-1]
+            newTable: Table = Table(newAttrs, {functionalDependency}, newTableName + 's')
             newTables.add(deepcopy(newTable))
 
     # loop through FDs again to find transitive FDs, where determinant is not a subset of primary key
@@ -191,10 +191,10 @@ def normalizeTo3NF(table: Table) -> set[Table]:
                 relation.primaryKey.add(attr) # add attribute to table's PK
         primeAttributes: list[str] = [attr.name for attr in relation.attributes if attr.isPrime]
         newTableName: str = "".join(primeAttributes)
-        if originalTable.name in newTableName: # if new table has same PK as original table
+        if originalTable.name[:-1] in newTableName: # if new table has same PK as original table
             relation.name = originalTable.name
         else:
-            relation.name = newTableName
+            relation.name = newTableName + 's'
 
     return newTables
 

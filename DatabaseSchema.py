@@ -62,7 +62,7 @@ class DatabaseSchema:
     def createSQLQueries(self, find_hnf: str) -> None:
         with open("SQLQueries.txt", "w") as f:
             for table in self.tables:
-                print(f"CREATE TABLE {table.name}s (", file=f)
+                print(f"CREATE TABLE {table.name} (", file=f)
                 for i, attr in enumerate(table.attributes):
                     if attr.dataType == "VARCHAR":
                         s: str = f"\t{attr.name} {attr.dataType}(100)"
@@ -215,7 +215,7 @@ def findForeignKeys(databaseSchema: DatabaseSchema, table: T.Table) -> list[str]
                 if not attr1.isPrime: # if attribute is non-prime
                     for attr2 in t.attributes:
                         if attr2.isPrime and (attr1.name == attr2.name): # if attribute is a primary key in another table
-                            fk_query = f"\tFOREIGN KEY ({attr1.name}) REFERENCES {t.name}s({attr2.name})"
+                            fk_query = f"\tFOREIGN KEY ({attr1.name}) REFERENCES {t.name}({attr2.name})"
                             queries.append(fk_query)
 
     return queries
@@ -244,7 +244,7 @@ def createReferenceTable(databaseSchema: DatabaseSchema) -> list[str]:
         table_query += "CREATE TABLE "
         for table in disconnected_tables:
             ref_table_name += table.name
-        table_query += f"{ref_table_name}s (\n"
+        table_query += f"{ref_table_name} (\n"
 
         # find attributes for reference relation
         for table in disconnected_tables:
@@ -262,9 +262,9 @@ def createReferenceTable(databaseSchema: DatabaseSchema) -> list[str]:
         for i, table in enumerate(disconnected_tables):
             for j, key in enumerate(table.primaryKey):
                 if (i == len(disconnected_tables)-1) and (j == len(table.primaryKey)-1): # if very last SQL statement
-                    table_query += f"\tFOREIGN KEY ({key.name}) REFERENCES {table.name}s({key.name})\n"
+                    table_query += f"\tFOREIGN KEY ({key.name}) REFERENCES {table.name}({key.name})\n"
                 else:
-                    table_query += f"\tFOREIGN KEY ({key.name}) REFERENCES {table.name}s({key.name}),\n"
+                    table_query += f"\tFOREIGN KEY ({key.name}) REFERENCES {table.name}({key.name}),\n"
 
         table_query += ");\n"
 
