@@ -62,7 +62,7 @@ class DatabaseSchema:
     def createSQLQueries(self, find_hnf: str) -> None:
         with open("SQLQueries.txt", "w") as f:
             for table in self.tables:
-                print(f"CREATE TABLE {table.name} (", file=f)
+                print(f"CREATE TABLE {table.name}s (", file=f)
                 for i, attr in enumerate(table.attributes):
                     if attr.dataType == "VARCHAR":
                         s: str = f"\t{attr.name} {attr.dataType}(100)"
@@ -84,7 +84,7 @@ class DatabaseSchema:
                         print(fk_queries[i], file=f)
                     else:
                         print(fk_queries[i] + ",", file=f)
-                print(");", file=f)
+                print(");\n", file=f)
             # create many-to-many relation table if original primary key is composite
             print(createReferenceTable(self), file=f)
             if find_hnf == "1":
@@ -212,10 +212,10 @@ def findForeignKeys(databaseSchema: DatabaseSchema, table: T.Table) -> list[str]
     for t in databaseSchema.tables:
         if t.name != table.name: # skip over same table
             for attr1 in table.attributes:
-                if not attr1.isPrime(): # if attribute is non-prime
+                if not attr1.isPrime: # if attribute is non-prime
                     for attr2 in t.attributes:
                         if attr2.isPrime and (attr1.name == attr2.name): # if attribute is a primary key in another table
-                            fk_query = f"FOREIGN KEY ({attr1.name}) REFERENCES {t.name}s({attr2.name})"
+                            fk_query = f"\tFOREIGN KEY ({attr1.name}) REFERENCES {t.name}s({attr2.name})"
                             queries.append(fk_query)
 
     return queries
@@ -227,7 +227,7 @@ def findForeignKeys(databaseSchema: DatabaseSchema, table: T.Table) -> list[str]
     Output: String with SQL query to create a reference table, if any
 """
 def createReferenceTable(databaseSchema: DatabaseSchema) -> list[str]:
-    original_PK: set[tuple[str, str]] = set([(attr.name, attr.dataType) for attr in databaseSchema.original_table.primaryKey])
+    original_PK: set[str] = set([attr.name for attr in databaseSchema.original_table.primaryKey])
     table_query: str = ""
     ref_table_name: str = ""
     ref_table_attributes: list[tuple[str, str]] = []
@@ -254,17 +254,17 @@ def createReferenceTable(databaseSchema: DatabaseSchema) -> list[str]:
         # create SQL attribute declarations
         for attr in ref_table_attributes:
             if key.dataType == "VARCHAR":
-                table_query += f"\t{attr.name} {attr.dataType}(100),\n"
+                table_query += f"\t{attr[0]} {attr[1]}(100),\n"
             else:
-                table_query += f"\t{attr.name} {attr.dataType},\n"
+                table_query += f"\t{attr[0]} {attr[1]},\n"
 
         # create foreign key constraints
         for i, table in enumerate(disconnected_tables):
             for j, key in enumerate(table.primaryKey):
-                if (i == len(disconnected_tables)-1) and (j == len(disconnected_tables)-1): # if very last SQL statement
-                    table_query += f"FOREIGN KEY ({key.name}) REFERENCES {table.name}s({key.name})\n"
+                if (i == len(disconnected_tables)-1) and (j == len(table.primaryKey)-1): # if very last SQL statement
+                    table_query += f"\tFOREIGN KEY ({key.name}) REFERENCES {table.name}s({key.name})\n"
                 else:
-                    table_query += f"FOREIGN KEY ({key.name}) REFERENCES {table.name}s({key.name}),\n"
+                    table_query += f"\tFOREIGN KEY ({key.name}) REFERENCES {table.name}s({key.name}),\n"
 
         table_query += ");\n"
 
