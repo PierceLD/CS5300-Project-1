@@ -1,6 +1,5 @@
 import csv
 import re
-import Table as T
 import Attribute as A
 import FunctionalDependency as FD
 
@@ -8,8 +7,8 @@ import FunctionalDependency as FD
     Input: .csv file
     Output: list of Attribute objects
 """
-def csvParse(filename: str) -> list[A.Attribute]:
-    attributes: list[A.Attribute] = []
+def csvParse(filename: str) -> set[A.Attribute]:
+    attributes: set[A.Attribute] = set()
 
     with open(filename, 'r') as csv_file:
         csv_reader = csv.reader(csv_file)
@@ -23,7 +22,7 @@ def csvParse(filename: str) -> list[A.Attribute]:
             else:
                 multVals = False
             d_type: str = getDataType(val[0])
-            attributes.append(A.Attribute(name=headings[i], isMultiValued=multVals, dataType=d_type))
+            attributes.add(A.Attribute(name=headings[i], isMultiValued=multVals, dataType=d_type))
 
         csv_file.close()
 
@@ -64,7 +63,7 @@ def keyParse(key: str) -> set[str]:
     Input: list of inputted strings representing FDs
     Output: list of FD objects representing each specified FD for input relation
 """
-def fdParse(fd_list: list[str], primary_key: set[str]) -> list[FD.FunctionalDependency]:
+def fdParse(fd_list: list[str], primary_key: set[str], attributes: set[A.Attribute]) -> list[FD.FunctionalDependency]:
     partitioned_fd: tuple[str, str, str] = tuple()
     lhs: list[str] = [] # left side of fd
     rhs: list[str] = [] # right side of fd
@@ -94,14 +93,14 @@ def fdParse(fd_list: list[str], primary_key: set[str]) -> list[FD.FunctionalDepe
                 isPrime = True
             else:
                 isPrime = False
-            determinants.add(A.Attribute(attr, isPrime)) 
+            determinants.add(A.Attribute(name=attr, isPrime=isPrime)) 
         # creating non-determinants list of Attribute objects
         for attr in rhs: 
             if attr in primary_key:
                 isPrime = True
             else:
                 isPrime = False
-            non_determinants.add(A.Attribute(attr, isPrime)) 
+            non_determinants.add(A.Attribute(name=attr, isPrime=isPrime))  
         
         # creating FunctionDependency object with determinants and non_determinants, add to list
         parsed_fds.append(FD.FunctionalDependency(determinants, non_determinants, isMultiValued))
@@ -109,5 +108,18 @@ def fdParse(fd_list: list[str], primary_key: set[str]) -> list[FD.FunctionalDepe
         # clear sets for next loop
         determinants = set()
         non_determinants = set()
+    
+    # make attributes in each FD have the correct data types
+    for fd in parsed_fds:
+        for determinant in fd.determinants:
+            for attr in attributes:
+                if determinant.name == attr.name:
+                    determinant.dataType = attr.dataType
+                    determinant.isMultiValued = attr.isMultiValued
+        for non_determinant in fd.nonDeterminants:
+            for attr in attributes:
+                if non_determinant.name == attr.name:
+                    non_determinant.dataType = attr.dataType
+                    non_determinant.isMultiValued = attr.isMultiValued
     
     return parsed_fds
