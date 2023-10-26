@@ -58,7 +58,7 @@ class Table:
         if not self.isBCNF():
             return False
         for functionalDependency in self.functionalDependencies:
-            if functionalDependency.isMultiValued:
+            if functionalDependency.isMultiValued and (len(functionalDependency.nonDeterminants) > 1):
                 return False
         return True
     
