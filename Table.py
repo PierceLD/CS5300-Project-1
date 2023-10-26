@@ -14,6 +14,8 @@ class Table:
         self.primaryKey = self.getPrimeAttributes()
         self.functionalDependencies = functionalDependencies
         self.name = name
+        
+    # def TableDeepCopy(self, attributes: set[A.Attribute], primaryKey: set[A.Attribute], functionalDependencies: set[FD.FunctionalDependency], name: str = "") -> Table:
     
     def is1NF(self) -> bool:
         for attribute in self.attributes:
@@ -22,7 +24,7 @@ class Table:
         return True
     
     def is2NF(self) -> bool:
-        if not self.is1NF:
+        if not self.is1NF():
             return False
         for functionalDependency in self.functionalDependencies:
             # if any of the determinants are a proper subset of the primary key (indicates partial FD)
