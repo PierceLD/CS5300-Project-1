@@ -279,7 +279,9 @@ def normalizeTo4NF(table: Table) -> set[Table]:
                 attribute.isPrime = True
             removedAttributes.update(functionalDependency.nonDeterminants)
             newFunctionalDependency: set[FD.FunctionalDependency] = {FD.FunctionalDependency(newAttributes, newAttributes)}
-            newTable: Table =  Table(newAttributes, newFunctionalDependency)
+            primeAttributes: list[str] = [a.name for a in newAttributes if a.isPrime]
+            newTableName: str = "".join(primeAttributes)
+            newTable: Table =  Table(newAttributes, newFunctionalDependency, newTableName + 's')
             newTables.add(newTable)
         else:
             nonMultiValuedDependencies.add(functionalDependency)
