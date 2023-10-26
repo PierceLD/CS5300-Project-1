@@ -71,7 +71,8 @@ class Table:
     def isSuperkey(self, attributes: set[A.Attribute]) -> bool:
         # Helper function to check if a set of attributes is a superkey
         if len(self.getPrimeAttributes()) > 0:
-            return attributes.issuperset(self.getPrimeAttributes()) 
+            attributeNames: set[str] = set([attr.name for attr in attributes])
+            return attributeNames.issuperset(set([key.name for key in self.getPrimeAttributes()])) 
         else:
             return False
 
@@ -177,18 +178,21 @@ def normalizeTo3NF(table: Table) -> set[Table]:
         return {table}
 
     newTables: set[Table] = set()
-    originalTable = deepcopy(table)
+    originalTable: Table = deepcopy(table)
     for functionalDependency in originalTable.functionalDependencies:
         #Add new table with functional dependency attributes and with the functional dependency itself
         newAttrs: set[FD.FunctionalDependency] = functionalDependency.determinants.union(functionalDependency.nonDeterminants)
         newTable: Table = Table(newAttrs, {functionalDependency})
         newTables.add(deepcopy(newTable))
-
+    # make appropriate attributes prime
     for relation in newTables:
         for dependency in relation.functionalDependencies:
             for attr in dependency.determinants:
                 attr.isPrime = True
-                relation.primaryKey.add(attr) # add attribute to table's PK
+                for a in relation.attributes:
+                    if a.name == attr.name:
+                        a.isPrime = True
+                        relation.primaryKey.add(attr) # add attribute to table's PK
         primeAttributes: list[str] = [attr.name for attr in relation.attributes if attr.isPrime]
         newTableName: str = "".join(primeAttributes)
         if originalTable.name[:-1] in newTableName: # if new table has same PK as original table
@@ -203,27 +207,59 @@ def normalizeToBCNF(table: Table) -> set[Table]:
         return {table}
 
     newTables: set[Table] = set()
-    for functionalDependency in table.functionalDependencies:
-        #find the functional dependency that is not in BCNF
-        if not table.isSuperkey(functionalDependency.determinants):
-            #R-A in the form of X->A in Relation R
-            newAttrs = table.attributes.difference(functionalDependency.nonDeterminants)
+    originalTable: Table = deepcopy(table)
+    for functionalDependency in originalTable.functionalDependencies:
+        # find the functional dependency that violates BCNF
+        if not originalTable.isSuperkey(functionalDependency.determinants):
+            # R-A in the form of X->A in Relation R
+            # determine new attributes for R-A table
+            origAttrNames: set[str] = set([attr.name for attr in originalTable.attributes])
+            newAttrNames: set[set] = origAttrNames.difference(functionalDependency.getNonDeterminantNames()) # R - A
+            newAttrs: set[A.Attribute] = set()
+            for name in newAttrNames: # gets attribute objects based on names in newAttrNames
+                if name in functionalDependency.getDeterminantNames(): # make X in X -> A a prime attribute in new table
+                    for attribute in deepcopy(originalTable.attributes):
+                        if name == attribute.name:
+                            attribute.isPrime = True
+                            newAttrs.add(attribute)
+                else: # add other attributes to newAttrs list
+                    for attribute in deepcopy(originalTable.attributes):
+                        if name == attribute.name:
+                            newAttrs.add(attribute)
             newFunctionalDependency = FD.FunctionalDependency(newAttrs, newAttrs)
-            newTable = deepcopy(Table(newAttrs, {newFunctionalDependency}))
-            for dependency in newTable.functionalDependencies:
+            primeAttributes: list[str] = [a.name for a in newAttrs if a.isPrime]
+            newTableName: str = "".join(primeAttributes)
+            if originalTable.name[:-1] in newTableName:
+                newTableName = originalTable.name[:-1]
+            newTable = deepcopy(Table(newAttrs, {newFunctionalDependency}, newTableName + 's'))
+            # define new primary key
+            newTable.primaryKey = newTable.getPrimeAttributes()
+            """for dependency in newTable.functionalDependencies:
                 if dependency.determinants == dependency.nonDeterminants:
                     for attr in dependency.determinants:
-                        attr.isPrime = True
+                        attr.isPrime = True"""
             newTables.add(newTable)
+
             #XA in the form of X->A in Relation R
             newAttrs = functionalDependency.determinants.union(functionalDependency.nonDeterminants)
-            newTable = deepcopy(Table(newAttrs, {functionalDependency}))
-
-            for dependency in newTable.functionalDependencies:
-                for attr in dependency.determinants:
+            for attr in newAttrs: # update attribute's prime status
+                if attr.name in functionalDependency.getDeterminantNames():
                     attr.isPrime = True
-                for attr in dependency.nonDeterminants:
+                elif attr.name in functionalDependency.getNonDeterminantNames():
                     attr.isPrime = False
+            primeAttributes: list[str] = [a.name for a in newAttrs if a.isPrime]
+            newTableName: str = "".join(primeAttributes)
+            if originalTable.name[:-1] in newTableName:
+                newTableName = originalTable.name[:-1]
+            newTable = deepcopy(Table(newAttrs, {functionalDependency}, newTableName + 's'))
+            newTable.primaryKey = newTable.getPrimeAttributes() # update PK for table XA
+            for dependency in newTable.functionalDependencies: # update FDs
+                for attr in dependency.determinants:
+                    if attr.name in [key.name for key in newTable.primaryKey]:
+                        attr.isPrime = True
+                for attr in dependency.nonDeterminants:
+                    if attr.name not in [key.name for key in newTable.primaryKey]:
+                        attr.isPrime = False
             newTables.add(newTable)
     return newTables
 
