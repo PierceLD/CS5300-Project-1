@@ -212,11 +212,11 @@ def findForeignKeys(databaseSchema: DatabaseSchema, table: T.Table) -> list[str]
     for t in databaseSchema.tables:
         if t.name != table.name: # skip over same table
             for attr1 in table.attributes:
-                if not attr1.isPrime: # if attribute is non-prime
-                    for attr2 in t.attributes:
-                        if attr2.isPrime and (attr1.name == attr2.name): # if attribute is a primary key in another table
-                            fk_query = f"\tFOREIGN KEY ({attr1.name}) REFERENCES {t.name}({attr2.name})"
-                            queries.append(fk_query)
+                #if not attr1.isPrime: # if attribute is non-prime
+                for attr2 in t.attributes:
+                    if attr2.isPrime and (attr1.name == attr2.name): # if attribute is a primary key in another table
+                        fk_query = f"\tFOREIGN KEY ({attr1.name}) REFERENCES {t.name}({attr2.name})"
+                        queries.append(fk_query)
 
     return queries
 
@@ -231,6 +231,9 @@ def createReferenceTable(databaseSchema: DatabaseSchema) -> list[str]:
     table_query: str = ""
     ref_table_name: str = ""
     ref_table_attributes: list[tuple[str, str]] = []
+    # pre check if there were no partial dependencies to begin with, then new table won't be made for a key in original PK
+    
+
     if (len(original_PK) > 1) and (len(databaseSchema.tables) > 1): # composite key indicates many to many relationship, if decomposed to 2NF
 
         # first find the tables to reference
@@ -240,32 +243,33 @@ def createReferenceTable(databaseSchema: DatabaseSchema) -> list[str]:
             if table_PK < original_PK: # if current table's PK is a proper subset of original PK (means original relation was split)
                 disconnected_tables.append(table)
 
-        # create reference relation for the disconnected tables
-        table_query += "CREATE TABLE "
-        for table in disconnected_tables:
-            ref_table_name += table.name
-        table_query += f"{ref_table_name} (\n"
+        if len(disconnected_tables): # skip creating the reference table if there are no disconnected tables
+            # create reference relation for the disconnected tables
+            table_query += "CREATE TABLE "
+            for table in disconnected_tables:
+                ref_table_name += table.name
+            table_query += f"{ref_table_name} (\n"
 
-        # find attributes for reference relation
-        for table in disconnected_tables:
-            for key in table.primaryKey:
-                ref_table_attributes.append((key.name, key.dataType))
+            # find attributes for reference relation
+            for table in disconnected_tables:
+                for key in table.primaryKey:
+                    ref_table_attributes.append((key.name, key.dataType))
 
-        # create SQL attribute declarations
-        for attr in ref_table_attributes:
-            if key.dataType == "VARCHAR":
-                table_query += f"\t{attr[0]} {attr[1]}(100),\n"
-            else:
-                table_query += f"\t{attr[0]} {attr[1]},\n"
-
-        # create foreign key constraints
-        for i, table in enumerate(disconnected_tables):
-            for j, key in enumerate(table.primaryKey):
-                if (i == len(disconnected_tables)-1) and (j == len(table.primaryKey)-1): # if very last SQL statement
-                    table_query += f"\tFOREIGN KEY ({key.name}) REFERENCES {table.name}({key.name})\n"
+            # create SQL attribute declarations
+            for attr in ref_table_attributes:
+                if key.dataType == "VARCHAR":
+                    table_query += f"\t{attr[0]} {attr[1]}(100),\n"
                 else:
-                    table_query += f"\tFOREIGN KEY ({key.name}) REFERENCES {table.name}({key.name}),\n"
+                    table_query += f"\t{attr[0]} {attr[1]},\n"
 
-        table_query += ");\n"
+            # create foreign key constraints
+            for i, table in enumerate(disconnected_tables):
+                for j, key in enumerate(table.primaryKey):
+                    if (i == len(disconnected_tables)-1) and (j == len(table.primaryKey)-1): # if very last SQL statement
+                        table_query += f"\tFOREIGN KEY ({key.name}) REFERENCES {table.name}({key.name})\n"
+                    else:
+                        table_query += f"\tFOREIGN KEY ({key.name}) REFERENCES {table.name}({key.name}),\n"
+
+            table_query += ");\n"
 
     return table_query
