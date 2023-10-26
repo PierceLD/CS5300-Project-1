@@ -60,7 +60,7 @@ class Table:
         if not self.isBCNF():
             return False
         for functionalDependency in self.functionalDependencies:
-            if functionalDependency.isMultiValued and (len(functionalDependency.nonDeterminants) > 1):
+            if not self.isTrivialMultiValuedDependency(functionalDependency) and functionalDependency.isMultiValued:
                 return False
         return True
     
@@ -270,21 +270,26 @@ def normalizeTo4NF(table: Table) -> set[Table]:
         return {table}
     newTables: set[Table] = set()
     removedAttributes: set[A.Attribute] = set()
-    nonMultiValuedDependency: set[FD.FunctionalDependency] = set()
+    nonMultiValuedDependencies: set[FD.FunctionalDependency] = set()
     for functionalDependency in table.functionalDependencies:
-        if not table.isTrivialMultiValuedDependency(functionalDependency):
+        if functionalDependency.isMultiValued and not table.isTrivialMultiValuedDependency(functionalDependency):
             #create new table that is trivial
             newAttributes: set[A.Attribute] = deepcopy(functionalDependency.determinants.union(functionalDependency.nonDeterminants))
-            removedAttributes.add(functionalDependency.nonDeterminants)
-            newTable: Table =  Table(newAttributes, newAttributes, functionalDependency)
+            for attribute in newAttributes:
+                attribute.isPrime = True
+            removedAttributes.update(functionalDependency.nonDeterminants)
+            newFunctionalDependency: set[FD.FunctionalDependency] = {FD.FunctionalDependency(newAttributes, newAttributes)}
+            newTable: Table =  Table(newAttributes, newFunctionalDependency)
             newTables.add(newTable)
-        elif not functionalDependency.isMultiValued:
-            nonMultiValuedDependency.add(functionalDependency)
+        else:
+            nonMultiValuedDependencies.add(functionalDependency)
             
     # make a new table that has all the removed attributes
-    newAttributes: set[A.Attribute] = table.attributes.difference(removedAttributes)
-    newPrimaryKey: set[A.Attribute] = deepcopy(table.primaryKey)
-    newTables.add(Table(newAttributes, newPrimaryKey, nonMultiValuedDependency))
+    newAttributes: set[A.Attribute] = deepcopy(table.attributes.difference(removedAttributes))
+    newFunctionalDependencies: set[FD.FunctionalDependency] = deepcopy(nonMultiValuedDependencies)
+    newBaseTable: Table = Table(newAttributes, newFunctionalDependencies) # TODO i think this might be empty
+    if len(newFunctionalDependencies) > 0:
+        newTables.add(newBaseTable)
     return newTables
     
 def normalizeTo5NF(table: Table) -> set[Table]:
