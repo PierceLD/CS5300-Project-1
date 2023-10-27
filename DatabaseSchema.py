@@ -110,6 +110,7 @@ class DatabaseSchema:
         output: str = ""
 
         for table in self.tables:
+            output += f"\n{table.name}\n"
             output += '-'*20
             output += "\nAttributes: "
             for attr in table.attributes:
@@ -263,10 +264,15 @@ def createReferenceTable(databaseSchema: DatabaseSchema) -> list[str]:
         disconnected_tables: list[T.Table] = []
         for table in databaseSchema.tables:
             table_PK: set[str] = set([key.name for key in table.primaryKey])
-            if table_PK < original_PK: # if current table's PK is a proper subset of original PK (means original relation was split)
+            tableHasMVFDs: bool = False
+            for fd in table.functionalDependencies:
+                if fd.isMultiValued:
+                    tableHasMVFDs = True
+            # TODO: REVISE, I DON'T THINK THIS IS GOOD ENOUGH
+            if (table_PK < original_PK) and (not tableHasMVFDs): # if current table's PK is a proper subset of original PK (means original relation was split)
                 disconnected_tables.append(table)
 
-        if len(disconnected_tables): # skip creating the reference table if there are no disconnected tables
+        if len(disconnected_tables) > 1: # skip creating the reference table if there are less than 2 disconnected tables
             # create reference relation for the disconnected tables
             table_query += "CREATE TABLE "
             for table in disconnected_tables:
