@@ -63,7 +63,7 @@ def keyParse(key: str) -> set[str]:
     Input: list of inputted strings representing FDs
     Output: list of FD objects representing each specified FD for input relation
 """
-def fdParse(fd_list: list[str], primary_key: set[str], attributes: set[A.Attribute]) -> list[FD.FunctionalDependency]:
+def fdParse(fd_list: list[str], attributes: set[A.Attribute]) -> set[FD.FunctionalDependency]:
     partitioned_fd: tuple[str, str, str] = tuple()
     lhs: list[str] = [] # left side of fd
     rhs: list[str] = [] # right side of fd
@@ -85,23 +85,13 @@ def fdParse(fd_list: list[str], primary_key: set[str], attributes: set[A.Attribu
         lhs = [x.strip() for x in partitioned_fd[0].split(',')] 
         rhs = [x.strip() for x in partitioned_fd[2].split(',')]
         
-        # making each attribute string into Attribute object, add to corresponding set
-        isPrime: bool = False
         # creating determinants list of Attribute objects
         for attr in lhs: 
-            """if attr in primary_key: # if the current attribute is part of primary key
-                isPrime = True
-            else:
-                isPrime = False"""
             for attribute in attributes:
                 if attr == attribute.name:
                     determinants.add(attribute) 
         # creating non-determinants list of Attribute objects
         for attr in rhs: 
-            """if attr in primary_key:
-                isPrime = True
-            else:
-                isPrime = False"""
             for attribute in attributes:
                 if attr == attribute.name:
                     non_determinants.add(attribute)  
@@ -113,15 +103,4 @@ def fdParse(fd_list: list[str], primary_key: set[str], attributes: set[A.Attribu
         determinants = set()
         non_determinants = set()
     
-    # make attributes in each FD have the correct data types, TODO: not necesssary now that any attribute in an FD references an attribute in attributes list
-    """for fd in parsed_fds:
-        for determinant in fd.determinants:
-            for attr in attributes:
-                if determinant.name == attr.name:
-                    determinant = attr
-        for non_determinant in fd.nonDeterminants:
-            for attr in attributes:
-                if non_determinant.name == attr.name:
-                    determinant = attr"""
-    
-    return parsed_fds
+    return set(parsed_fds)

@@ -8,7 +8,7 @@ def main():
     # get input data file and parse data to get attributes
     print("Input dataset:")
     file: str = input()
-    attributes: list[A.Attribute] = P.csvParse(file) # list of Attributes used to create Table object
+    attributes: set[A.Attribute] = P.csvParse(file) # list of Attributes used to create Table object
 
     # get input table name from file name
     table_name: str = file.split(".")[0].capitalize()
@@ -27,12 +27,12 @@ def main():
     print("Input Functional Dependencies (type “exit” and hit enter to complete your dependency list):")
     fd: str = ""
     fd_list: list[str] = [] # list of inputted fds
-    parsed_fd_list: list[FD.FunctionalDependency] = [] # list of parsed fds
+    parsed_fd_list: set[FD.FunctionalDependency] = [] # list of parsed fds
     while fd != "exit":
         fd = input()
         if fd != "exit":
             fd_list.append(fd)
-    parsed_fd_list = P.fdParse(fd_list, key_set, attributes) # list of FDs used to create Table object
+    parsed_fd_list = P.fdParse(fd_list, attributes) # list of FDs used to create Table object
 
     # create the Table object with Attributes and FDs
     table: T.Table = T.Table(attributes, parsed_fd_list, table_name)
@@ -51,6 +51,7 @@ def main():
 
     # create the SQL Queries for the DB schema
     DB_schema.createSQLQueries(find_hnf)
+    print(DB_schema)
 
 
 if __name__ == "__main__":
