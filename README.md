@@ -2,6 +2,7 @@
 ### Developed by: Pierce Dreiling, Adam McNeil, and Daniel Martin  
 ### Objects and functions:
 For our basic structure, we created class objects corresponding to a specific aspect of a database relation including attributes, functional dependencies, tables and the database schema itself.  
+
 **Attribute.py**
 - An Attribute object holds an attribute's name, SQL data type, prime status, and multi-valued status.  
 
@@ -20,8 +21,8 @@ For our basic structure, we created class objects corresponding to a specific as
 - *createSQLQueries()* is the SQL query generator which will write out the generated queries to a text file name "SQLQueries.txt"
 - The non-member functions in the same file are called by the DatabaseSchema object's members to assist in either normalization or query generation. The *normalizeTo#NF()* functions loop through each table in the schema's list and calls the table's *normalizeTo#NF()* method. *findForeignKeys()* and *createReferenceTable()* are used to determine how to generate foreign key constraints and reference tables for the queries.  
 
-- **main.py**
-    - 
+**main.py**
+- 
 
 ### Input Parser
 Our input parser is represented by the file **Parse.py** which will parse and stored all the data from the input csv file and the user-inputted functional dependencies to then create the Table object and its components.
