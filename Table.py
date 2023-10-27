@@ -8,12 +8,14 @@ class Table:
     attributes: set[A.Attribute]
     primaryKey: set[A.Attribute]
     functionalDependencies: set[FD.FunctionalDependency]
+    dataTuples: list[dict[str, list[str]]]
     
     def __init__(self, attributes: set[A.Attribute], functionalDependencies: set[FD.FunctionalDependency], name: str = "") -> None:
         self.attributes = attributes
         self.primaryKey = self.getPrimeAttributes()
         self.functionalDependencies = functionalDependencies
         self.name = name
+        self.dataTuples = []
         
     # def TableDeepCopy(self, attributes: set[A.Attribute], primaryKey: set[A.Attribute], functionalDependencies: set[FD.FunctionalDependency], name: str = "") -> Table:
     

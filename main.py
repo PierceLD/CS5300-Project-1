@@ -8,7 +8,9 @@ def main():
     # get input data file and parse data to get attributes
     print("Input dataset:")
     file: str = input()
-    attributes: set[A.Attribute] = P.csvParse(file) # list of Attributes used to create Table object
+    data_vals: tuple[set[A.Attribute], list[dict[str, list[str]]]] = P.csvParse(file) # set of Attributes and data tuples used to create Table object
+    attributes: set[A.Attribute] = data_vals[0]
+    tuples: list[dict[str, list[str]]] = data_vals[1]
 
     # get input table name from file name
     table_name: str = file.split(".")[0].capitalize()
@@ -36,6 +38,7 @@ def main():
 
     # create the Table object with Attributes and FDs
     table: T.Table = T.Table(attributes, parsed_fd_list, table_name)
+    table.dataTuples = tuples
     # create DatabaseSchema object and add the table to it
     DB_schema: D.DatabaseSchema = D.DatabaseSchema(table)
 

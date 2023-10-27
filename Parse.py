@@ -7,26 +7,35 @@ import FunctionalDependency as FD
     Input: .csv file
     Output: list of Attribute objects
 """
-def csvParse(filename: str) -> set[A.Attribute]:
-    attributes: set[A.Attribute] = set()
-
+def csvParse(filename: str) -> tuple[set[A.Attribute], list[dict[str, list[str]]]]:
     with open(filename, 'r') as csv_file:
         csv_reader = csv.reader(csv_file)
         headings: list[str] = next(csv_reader) # gets first line of file (attributes)
-        tuple1: list[str] = next(csv_reader) # gets first line of data
-        # determines SQL data type for each attribute based on data vals in first tuple of the table
-        for i, val in enumerate(tuple1):
-            val = val.split(',') # splits data string into a list to check for multiple values
-            if len(val) > 1: # if attribute is multi valued
-                multVals: bool = True
-            else:
-                multVals = False
-            d_type: str = getDataType(val[0])
-            attributes.add(A.Attribute(name=headings[i], isMultiValued=multVals, dataType=d_type))
+        attributes: list[A.Attribute] = []
+        tuples: list[dict[str, list[str]]] = []
+        for tuple in csv_reader:
+            tmp_dict: dict[str, str] = {}
+            for i, val in enumerate(tuple):
+                val_list: list[str] = val.strip().split(',')
+                tmp_dict[headings[i]] = val_list # e.g. {'StudentID': ['101'], ...}
+            tuples.append(tmp_dict)
+        # create the attribute objects
+        for attribute in headings:
+            attributes.append(A.Attribute(name=attribute))
+        
+        # loop thru new attributes to set SQL data value and multi-valued status
+        for attribute in attributes:
+            for tuple in tuples: # check each data tuple
+                cell: list[str] = tuple[attribute.name]
+                print(cell)
+                if len(cell) > 1: # if multiple data values in one cell
+                    attribute.isMultiValued = True
+                    break # no need to check other tuples if multi-valued cell is found
+                attribute.dataType = getDataType(cell[0]) # set the data type of the attribute
 
         csv_file.close()
 
-    return attributes
+    return (set(attributes), tuples)
 
 """ Takes a string representing a data value from the table to
     determine SQL data type for the corresponding attribute using regex
