@@ -27,8 +27,7 @@ class Table:
         if not self.is1NF():
             return False
         for functionalDependency in self.functionalDependencies:
-            # if any of the determinants are a proper subset of the primary key (indicates partial FD)
-            if functionalDependency.getDeterminantNames() < set([key.name for key in self.primaryKey]):
+            if functionalDependency.determinants < self.primaryKey: # if any of the determinants are a proper subset of the primary key (indicates partial FD)
                 return False
         return True
 
@@ -38,13 +37,14 @@ class Table:
 
         # check for each FD if determinant is a superkey or if dependent is a prime attribute
         for functionalDependency in self.functionalDependencies:
-            determinant_not_superkey: bool = not self.isSuperkey(functionalDependency.determinants)
-            non_determinant_not_prime: bool = True
-            for attr in functionalDependency.nonDeterminants: # find out if non-determinant is prime or not
-                if attr.isPrime:
-                    non_determinant_not_prime = False
-            if determinant_not_superkey and non_determinant_not_prime: # if all attributes in FD are non-prime, indicates a transitive FD
-                return False
+            if not functionalDependency.isMultiValued:
+                determinant_not_superkey: bool = not self.isSuperkey(functionalDependency.determinants)
+                non_determinant_not_prime: bool = True
+                for attr in functionalDependency.nonDeterminants: # find out if non-determinant is prime or not
+                    if attr.isPrime:
+                        non_determinant_not_prime = False
+                if determinant_not_superkey and non_determinant_not_prime: # if all attributes in FD are non-prime, indicates a transitive FD
+                    return False
 
         return True
     
@@ -52,8 +52,9 @@ class Table:
         if not self.is3NF():
             return False
         for functionalDependency in self.functionalDependencies:
-            if not self.isSuperkey(functionalDependency.determinants): # if the FD determinant is not a superkey, violates BCNF constraint
-                return False
+            if not functionalDependency.isMultiValued:
+                if not self.isSuperkey(functionalDependency.determinants): # if the FD determinant is not a superkey, violates BCNF constraint
+                    return False
         return True
     
     def is4NF(self) -> bool:
@@ -73,8 +74,7 @@ class Table:
     def isSuperkey(self, attributes: set[A.Attribute]) -> bool:
         # Helper function to check if a set of attributes is a superkey
         if len(self.getPrimeAttributes()) > 0:
-            attributeNames: set[str] = set([attr.name for attr in attributes])
-            return attributeNames.issuperset(set([key.name for key in self.getPrimeAttributes()])) 
+            return attributes.issuperset(self.getPrimeAttributes()) 
         else:
             return False
 
@@ -121,7 +121,7 @@ class Table:
 """
 def normalizeTo1NF(table: Table) -> set[Table]:
     if table.is1NF():
-        return {table}
+        return {deepcopy(table)} # return deepcopy's of input table to avoid changing input table's data
 
     newTable: Table = deepcopy(table) # create a new copy of the table
 
@@ -132,137 +132,170 @@ def normalizeTo1NF(table: Table) -> set[Table]:
             if attribute.name[-1] == 's': # make it singular if it's plural
                 attribute.name = attribute.name[:-1]
             newTable.primaryKey.add(attribute) # add the attribute to the table's primary key
+    # add a trivial FD to the new table
+    newTable.functionalDependencies.add(FD.FunctionalDependency(newTable.primaryKey, newTable.primaryKey))
+    # update name if necessary (more attributes added to PK)
+    if len(newTable.primaryKey) > len(table.primaryKey):
+        primeAttributeNames: list[str] = [attr.name for attr in newTable.primaryKey]
+        newTableName: str = "".join(primeAttributeNames)
+        newTable.name = newTableName + 's'
 
     return {newTable}
 
 def normalizeTo2NF(table: Table) -> set[Table]:
     if table.is2NF():
-        return {table}
+        return {deepcopy(table)}
     
     newTables: set[Table] = set()
     originalTable: Table = deepcopy(table)
     # go thru FDs to find full FDs, where determinant = primary key, and partial FDs first
     for functionalDependency in originalTable.functionalDependencies:
-        # if it's a full FD with determinant == primary key, just make a new table with all attributes from FD
-        if functionalDependency.getDeterminantNames() == set([key.name for key in originalTable.primaryKey]):
-            newAttrs: set[A.Attribute] = functionalDependency.determinants.union(functionalDependency.nonDeterminants)
-            newTable: Table = Table(newAttrs, {functionalDependency}, originalTable.name) # new table's name is same as original table's
-            newTables.add(deepcopy(newTable))
-        # if it's a partial FD where determinant is proper subset of primary key
-        elif functionalDependency.getDeterminantNames() < set([key.name for key in originalTable.primaryKey]):
-            newAttrs: set[A.Attribute] = functionalDependency.determinants.union(functionalDependency.nonDeterminants)
-            primeAttributes: list[str] = [attr.name for attr in newAttrs if attr.isPrime]
-            newTableName: str = "".join(primeAttributes)
-            if originalTable.name[:-1] in newTableName:
-                newTableName = originalTable.name[:-1]
-            newTable: Table = Table(newAttrs, {functionalDependency}, newTableName + 's')
-            newTables.add(deepcopy(newTable))
+        if not functionalDependency.isMultiValued:
+            if functionalDependency.determinants.issubset(originalTable.primaryKey):
+                newAttrs: set[A.Attribute] = functionalDependency.determinants.union(functionalDependency.nonDeterminants)
+                newTable: Table = Table(newAttrs, {functionalDependency})
+                if newTable.primaryKey == originalTable.primaryKey: # if PK of new table is same as original table, then give it the same name
+                    newTable.name = originalTable.name
+                else:
+                    primeAttributeNames: list[str] = [attr.name for attr in newAttrs if attr.isPrime]
+                    newTableName: str = "".join(primeAttributeNames)
+                    newTable.name = newTableName + 's'
+                newTables.add(deepcopy(newTable))
 
     # loop through FDs again to find transitive FDs, where determinant is not a subset of primary key
     for functionalDependency in originalTable.functionalDependencies:
-        s1: set[A.Attribute] = functionalDependency.getDeterminantNames()
-        s2: set[A.Attribute] = set([key.name for key in originalTable.primaryKey])
-        if s1.difference(s2) == s1: # if current FD determinant is not in primary key (indicating transitive FD)
-            for t in newTables:
-                newFDs: set[FD.FunctionalDependency] = set()
-                for fd in t.functionalDependencies:
-                    # if current FD determinant is in any of the newTable's FD non-determinants
-                    if functionalDependency.getDeterminantNames().issubset(fd.getNonDeterminantNames()):
-                        # add current FD to newTable FD list and add attributes newTable attribute list
-                        t.attributes = t.attributes.union(functionalDependency.nonDeterminants)
-                        newFDs.add(functionalDependency)
-                t.functionalDependencies = t.functionalDependencies.union(newFDs)
+        if not functionalDependency.isMultiValued:
+            if functionalDependency.determinants.difference(originalTable.primaryKey) == functionalDependency.determinants: # if current FD determinant is not in primary key (indicating transitive FD)
+                for newTable in newTables:
+                    newFDs: set[FD.FunctionalDependency] = set()
+                    for fd in newTable.functionalDependencies:
+                        # if current FD determinant is in any of the newTable's FD non-determinants
+                        if functionalDependency.getDeterminantNames().issubset(fd.getNonDeterminantNames()):
+                            # add current FD to newTable FD list and add attributes newTable attribute list
+                            newTable.attributes = newTable.attributes.union(functionalDependency.nonDeterminants)
+                            newFDs.add(functionalDependency)
+                    newTable.functionalDependencies = newTable.functionalDependencies.union(newFDs)
+
+    # loop thru newTables to determine where to add multi-valued FDs, if any
+    multivaluedFDs: set[FD.FunctionalDependency] = set([fd for fd in originalTable.functionalDependencies if fd.isMultiValued])
+    if len(multivaluedFDs):
+        for newTable in newTables:
+            for fd in multivaluedFDs:
+                fdAttrs: set[A.Attribute] = fd.determinants.union(fd.nonDeterminants)
+                fdAttrNames: set[str] = set([attr.name for attr in fdAttrs])
+                if fdAttrNames == set([attr.name for attr in newTable.primaryKey]): # if union of fd attributes is the primary key of the new table
+                    newTable.functionalDependencies.add(fd) # add MVFD to new table's FDs
+
+    # make sure attributes in all FDs are referencing an attribute in newTable.attributes list
+    for newTable in newTables:
+        for functionalDependency in newTable.functionalDependencies:
+            for determinant in functionalDependency.determinants:
+                for attr in newTable.attributes:
+                    if determinant.name == attr.name:
+                        determinant = attr
+            for nonDeterminant in functionalDependency.nonDeterminants:
+                for attr in newTable.attributes:
+                    if nonDeterminant.name == attr.name:
+                        nonDeterminant = attr
 
     return newTables
         
 def normalizeTo3NF(table: Table) -> set[Table]:
     if table.is3NF():
-        return {table}
+        return {deepcopy(table)}
 
     newTables: set[Table] = set()
     originalTable: Table = deepcopy(table)
     for functionalDependency in originalTable.functionalDependencies:
-        #Add new table with functional dependency attributes and with the functional dependency itself
-        newAttrs: set[FD.FunctionalDependency] = functionalDependency.determinants.union(functionalDependency.nonDeterminants)
-        newTable: Table = Table(newAttrs, {functionalDependency})
-        newTables.add(deepcopy(newTable))
+        if not functionalDependency.isMultiValued:
+            #Add new table with functional dependency attributes and with the functional dependency itself
+            newAttrs: set[FD.FunctionalDependency] = functionalDependency.determinants.union(functionalDependency.nonDeterminants)
+            newTable: Table = Table(newAttrs, {functionalDependency})
+            newTables.add(deepcopy(newTable))
     # make appropriate attributes prime
     for relation in newTables:
         for dependency in relation.functionalDependencies:
-            for attr in dependency.determinants:
-                attr.isPrime = True
-                for a in relation.attributes:
-                    if a.name == attr.name:
-                        a.isPrime = True
+            for d_attr in dependency.determinants:
+                for attr in relation.attributes:
+                    if d_attr.name == attr.name:
+                        attr.isPrime = True # make attribute on lhs of dependency prime in relation's attribute set
+                        d_attr = attr # make the attribute in determinant reference attribute in relation's attribute's set
                         relation.primaryKey.add(attr) # add attribute to table's PK
         primeAttributes: list[str] = [attr.name for attr in relation.attributes if attr.isPrime]
         newTableName: str = "".join(primeAttributes)
-        if originalTable.name[:-1] in newTableName: # if new table has same PK as original table
-            relation.name = originalTable.name
-        else:
-            relation.name = newTableName + 's'
+        relation.name = newTableName + 's'
+
+    # loop thru newTables to determine where to add multi-valued FDs, if any
+    multivaluedFDs: set[FD.FunctionalDependency] = set([fd for fd in originalTable.functionalDependencies if fd.isMultiValued])
+    if len(multivaluedFDs):
+        for newTable in newTables:
+            for fd in multivaluedFDs:
+                fdAttrs: set[A.Attribute] = fd.determinants.union(fd.nonDeterminants)
+                fdAttrNames: set[str] = set([attr.name for attr in fdAttrs])
+                if fdAttrNames == set([attr.name for attr in newTable.primaryKey]): # if union of fd attributes is the primary key of the new table
+                    newTable.functionalDependencies.add(fd) # add MVFD to new table's FDs
+
+    # make sure attributes in all FDs are referencing an attribute in newTable.attributes list
+    for newTable in newTables:
+        for functionalDependency in newTable.functionalDependencies:
+            for determinant in functionalDependency.determinants:
+                for attr in newTable.attributes:
+                    if determinant.name == attr.name:
+                        determinant = attr
+            for nonDeterminant in functionalDependency.nonDeterminants:
+                for attr in newTable.attributes:
+                    if nonDeterminant.name == attr.name:
+                        nonDeterminant = attr
 
     return newTables
 
 def normalizeToBCNF(table: Table) -> set[Table]:
     if table.isBCNF():
-        return {table}
+        return {deepcopy(table)}
 
     newTables: set[Table] = set()
     originalTable: Table = deepcopy(table)
     for functionalDependency in originalTable.functionalDependencies:
-        # find the functional dependency that violates BCNF
-        if not originalTable.isSuperkey(functionalDependency.determinants):
+        # find the functional dependency that violates BCNF, skip multi-valued dependencies
+        if not originalTable.isSuperkey(functionalDependency.determinants) and not functionalDependency.isMultiValued:
             # R-A in the form of X->A in Relation R
             # determine new attributes for R-A table
-            origAttrNames: set[str] = set([attr.name for attr in originalTable.attributes])
-            newAttrNames: set[set] = origAttrNames.difference(functionalDependency.getNonDeterminantNames()) # R - A
-            newAttrs: set[A.Attribute] = set()
-            for name in newAttrNames: # gets attribute objects based on names in newAttrNames
-                if name in functionalDependency.getDeterminantNames(): # make X in X -> A a prime attribute in new table
-                    for attribute in deepcopy(originalTable.attributes):
-                        if name == attribute.name:
-                            attribute.isPrime = True
-                            newAttrs.add(attribute)
-                else: # add other attributes to newAttrs list
-                    for attribute in deepcopy(originalTable.attributes):
-                        if name == attribute.name:
-                            newAttrs.add(attribute)
-            newFunctionalDependency = FD.FunctionalDependency(newAttrs, newAttrs)
+            newAttrs: set[A.Attribute] = deepcopy(originalTable.attributes.difference(functionalDependency.nonDeterminants))
+            for attr in newAttrs: # make attributes from X prime
+                attr.isPrime = True
+            newFunctionalDependency: FD.FunctionalDependency = FD.FunctionalDependency(newAttrs, newAttrs)
             primeAttributes: list[str] = [a.name for a in newAttrs if a.isPrime]
             newTableName: str = "".join(primeAttributes)
-            if originalTable.name[:-1] in newTableName:
-                newTableName = originalTable.name[:-1]
             newTable = deepcopy(Table(newAttrs, {newFunctionalDependency}, newTableName + 's'))
-            # define new primary key
-            newTable.primaryKey = newTable.getPrimeAttributes()
-            """for dependency in newTable.functionalDependencies:
-                if dependency.determinants == dependency.nonDeterminants:
-                    for attr in dependency.determinants:
-                        attr.isPrime = True"""
             newTables.add(newTable)
 
             #XA in the form of X->A in Relation R
-            newAttrs = functionalDependency.determinants.union(functionalDependency.nonDeterminants)
-            for attr in newAttrs: # update attribute's prime status
-                if attr.name in functionalDependency.getDeterminantNames():
-                    attr.isPrime = True
-                elif attr.name in functionalDependency.getNonDeterminantNames():
-                    attr.isPrime = False
+            newAttrs = deepcopy(functionalDependency.determinants.union(functionalDependency.nonDeterminants))
+            for attr in newAttrs: # update each attribute's prime status
+                for determinant in functionalDependency.determinants:
+                    if attr.name == determinant.name:
+                        print("Determinant", attr)
+                        attr.isPrime = True
+                for nonDeterminant in functionalDependency.nonDeterminants:
+                    if attr.name == nonDeterminant.name:
+                        print("Non", attr)
+                        attr.isPrime = False
             primeAttributes: list[str] = [a.name for a in newAttrs if a.isPrime]
             newTableName: str = "".join(primeAttributes)
-            if originalTable.name[:-1] in newTableName:
-                newTableName = originalTable.name[:-1]
             newTable = deepcopy(Table(newAttrs, {functionalDependency}, newTableName + 's'))
-            newTable.primaryKey = newTable.getPrimeAttributes() # update PK for table XA
+            #newTable.primaryKey = newTable.getPrimeAttributes() # update PK for table XA
+
             for dependency in newTable.functionalDependencies: # update FDs
-                for attr in dependency.determinants:
-                    if attr.name in [key.name for key in newTable.primaryKey]:
-                        attr.isPrime = True
-                for attr in dependency.nonDeterminants:
-                    if attr.name not in [key.name for key in newTable.primaryKey]:
-                        attr.isPrime = False
+                for determinant in dependency.determinants:
+                    for attr in newTable.attributes:
+                        if determinant.name == attr.name:
+                            determinant = attr
+                for nonDeterminant in dependency.nonDeterminants:
+                    for attr in newTable.attributes:
+                        if nonDeterminant.name == attr.name:
+                            nonDeterminant = attr
             newTables.add(newTable)
+
     return newTables
 
 def normalizeTo4NF(table: Table) -> set[Table]:
@@ -278,7 +311,7 @@ def normalizeTo4NF(table: Table) -> set[Table]:
             for attribute in newAttributes:
                 attribute.isPrime = True
             removedAttributes.update(functionalDependency.nonDeterminants)
-            newFunctionalDependency: set[FD.FunctionalDependency] = {FD.FunctionalDependency(newAttributes, newAttributes)}
+            newFunctionalDependency: set[FD.FunctionalDependency] = {FD.FunctionalDependency(newAttributes, newAttributes, True)}
             primeAttributes: list[str] = [a.name for a in newAttributes if a.isPrime]
             newTableName: str = "".join(primeAttributes)
             newTable: Table =  Table(newAttributes, newFunctionalDependency, newTableName + 's')
