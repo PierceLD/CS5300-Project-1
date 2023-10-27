@@ -236,11 +236,11 @@ def findForeignKeys(databaseSchema: DatabaseSchema, table: T.Table) -> list[str]
     for t in databaseSchema.tables:
         if t.name != table.name: # skip over same table
             for attr1 in table.attributes:
-                #if not attr1.isPrime: # if attribute is non-prime
-                for attr2 in t.attributes:
-                    if attr2.isPrime and (attr1.name == attr2.name): # if attribute is a primary key in another table
-                        fk_query = f"\tFOREIGN KEY ({attr1.name}) REFERENCES {t.name}({attr2.name})"
-                        queries.append(fk_query)
+                if not attr1.isPrime: # if attribute is non-prime
+                    for attr2 in t.attributes:
+                        if attr2.isPrime and (attr1.name == attr2.name): # if attribute is a primary key in another table
+                            fk_query = f"\tFOREIGN KEY ({attr1.name}) REFERENCES {t.name}({attr2.name})"
+                            queries.append(fk_query)
 
     return queries
 
