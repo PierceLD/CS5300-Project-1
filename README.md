@@ -1,5 +1,5 @@
 # Database Relation Normalizer
-## Developed by: Pierce Dreiling, Adam McNeil, Daniel Martin
+### Developed by: Pierce Dreiling, Adam McNeil, and Daniel Martin
 
 ### Documentation:
 #### Objects and functions:
