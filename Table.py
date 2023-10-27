@@ -27,7 +27,7 @@ class Table:
         if not self.is1NF():
             return False
         for functionalDependency in self.functionalDependencies:
-            if functionalDependency.determinants < self.primaryKey: # if any of the determinants are a proper subset of the primary key (indicates partial FD)
+            if not functionalDependency.isMultiValued and functionalDependency.determinants < self.primaryKey: # if any of the determinants are a proper subset of the primary key (indicates partial FD)
                 return False
         return True
 
@@ -294,6 +294,16 @@ def normalizeToBCNF(table: Table) -> set[Table]:
                         if nonDeterminant.name == attr.name:
                             nonDeterminant = attr
             newTables.add(newTable)
+
+    # loop thru newTables to determine where to add multi-valued FDs, if any
+    multivaluedFDs: set[FD.FunctionalDependency] = set([fd for fd in originalTable.functionalDependencies if fd.isMultiValued])
+    if len(multivaluedFDs):
+        for newTable in newTables:
+            for fd in multivaluedFDs:
+                fdAttrs: set[A.Attribute] = fd.determinants.union(fd.nonDeterminants)
+                fdAttrNames: set[str] = set([attr.name for attr in fdAttrs])
+                if fdAttrNames <= set([attr.name for attr in newTable.attributes]): # if union of fd attributes is subset of the newTable's attributes
+                    newTable.functionalDependencies.add(fd) # add MVFD to new table's FDs
 
     return newTables
 
