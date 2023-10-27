@@ -83,7 +83,7 @@ class Table:
         return {attr for attr in self.attributes if attr.isPrime}
     
     def isTrivialMultiValuedDependency(self, functionalDependency: FD.FunctionalDependency) -> bool:
-        return functionalDependency.isMultiValued and self.attributes is functionalDependency.determinants.union(functionalDependency.nonDeterminants)
+        return functionalDependency.isMultiValued and (self.attributes is functionalDependency.determinants.union(functionalDependency.nonDeterminants))
 
     """ Helper function to return attributes as a set of strings in order
         to make set() operations work correctly (i.e. issuperset(), issubset(), etc)
@@ -183,7 +183,7 @@ def normalizeTo2NF(table: Table) -> set[Table]:
             for fd in multivaluedFDs:
                 fdAttrs: set[A.Attribute] = fd.determinants.union(fd.nonDeterminants)
                 fdAttrNames: set[str] = set([attr.name for attr in fdAttrs])
-                if fdAttrNames == set([attr.name for attr in newTable.primaryKey]): # if union of fd attributes is the primary key of the new table
+                if fdAttrNames <= set([attr.name for attr in newTable.attributes]): # if union of fd attributes is a subset of newTable's attributes
                     newTable.functionalDependencies.add(fd) # add MVFD to new table's FDs
 
     # make sure attributes in all FDs are referencing an attribute in newTable.attributes list
@@ -232,7 +232,7 @@ def normalizeTo3NF(table: Table) -> set[Table]:
             for fd in multivaluedFDs:
                 fdAttrs: set[A.Attribute] = fd.determinants.union(fd.nonDeterminants)
                 fdAttrNames: set[str] = set([attr.name for attr in fdAttrs])
-                if fdAttrNames == set([attr.name for attr in newTable.primaryKey]): # if union of fd attributes is the primary key of the new table
+                if fdAttrNames <= set([attr.name for attr in newTable.attributes]): # if union of fd attributes is subset of the newTable's attributes
                     newTable.functionalDependencies.add(fd) # add MVFD to new table's FDs
 
     # make sure attributes in all FDs are referencing an attribute in newTable.attributes list
@@ -283,7 +283,6 @@ def normalizeToBCNF(table: Table) -> set[Table]:
             primeAttributes: list[str] = [a.name for a in newAttrs if a.isPrime]
             newTableName: str = "".join(primeAttributes)
             newTable = deepcopy(Table(newAttrs, {functionalDependency}, newTableName + 's'))
-            #newTable.primaryKey = newTable.getPrimeAttributes() # update PK for table XA
 
             for dependency in newTable.functionalDependencies: # update FDs
                 for determinant in dependency.determinants:
@@ -319,12 +318,12 @@ def normalizeTo4NF(table: Table) -> set[Table]:
         else:
             nonMultiValuedDependencies.add(functionalDependency)
             
-    # make a new table that has all the removed attributes
-    newAttributes: set[A.Attribute] = deepcopy(table.attributes.difference(removedAttributes))
+    # make a new table that has all the removed attributes, TODO: i don't think this is necessary since input table is going to be split
+    """newAttributes: set[A.Attribute] = deepcopy(table.attributes.difference(removedAttributes))
     newFunctionalDependencies: set[FD.FunctionalDependency] = deepcopy(nonMultiValuedDependencies)
     newBaseTable: Table = Table(newAttributes, newFunctionalDependencies) # TODO i think this might be empty
     if len(newFunctionalDependencies) > 0:
-        newTables.add(newBaseTable)
+        newTables.add(newBaseTable)"""
     return newTables
     
 def normalizeTo5NF(table: Table) -> set[Table]:
