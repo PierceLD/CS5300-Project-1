@@ -6,13 +6,15 @@ The following are necessary for correctly inputting data:
 - Indicate the primary key of the relation by typing the attribute names separated by a comma (if composite PK). i.e. StudentID, Course
 - Input all necessary functional dependencies.
     - For regular dependencies use a single arrow. 
-        - i.e. StudentID -> Course
+        - i.e. `StudentID -> Course`
     - Separate attributes with a comma. 
-        - i.e. StudentID, Course -> FirstName, Instructor
+        - i.e. `StudentID, Course -> FirstName, Instructor`
+    - If you have FDs like this, `StudentID -> FirstName` and `StudentID -> LastName`, don't input them separately. Always combine them together by separating non-determinant attributes with commas.
+        - i.e. `StudentID -> FirstName, LastName`
     - For multi-valued dependencies use a double arrow. 
-        - i.e. Ename ->-> Dname
-    - If you have a multi-valued dependency that can be written in shorthand as Ename ->-> Dname | Ename, please separate it into two separate multi-valued dependencies. 
-        - i.e. Ename ->-> Dname (enter) Ename ->-> Pname (enter)
+        - i.e. `Ename ->-> Dname`
+    - If you have a multi-valued dependency that can be written in shorthand as `Ename ->-> Dname | Ename`, please separate it into two separate multi-valued dependencies. 
+        - i.e. `Ename ->-> Dname` (enter) `Ename ->-> Pname` (enter)
     - Type "exit" to stop inputting FDs.
 - Follow prompt for which normalization you want to reach and type corresponding numbers or letter.
 - Indicate whether you want to find the highest normal form of the input table. This will be outputted, if you chose to, in SQLQueries.txt along with the generated CREATE TABLE queries.  
