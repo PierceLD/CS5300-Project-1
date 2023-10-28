@@ -1,5 +1,5 @@
 # basically a list of attributes and functional dependencies
-from copy import deepcopy
+from copy import deepcopy, copy
 import Attribute as A
 import FunctionalDependency as FD
 
@@ -115,7 +115,18 @@ class Table:
         for fd in self.functionalDependencies:
             result+="\t" + fd.__str__() + "\n"
         return result
-                
+
+
+""" This function will put the correct projections of data
+    from the original input table's data tuples into all of
+    the new decomposed relations
+    Input: the original data tuples, a set decomposed/altered relations
+    Output: None
+"""
+def projectData(originalTuples: list[dict[str, list[str]]], newTables: set[Table]) -> None:
+    pass
+
+
 """ The following are the normalization functions (1NF to 5NF)
     for each table.
     Input: A relation table
@@ -134,13 +145,43 @@ def normalizeTo1NF(table: Table) -> set[Table]:
             if attribute.name[-1] == 's': # make it singular if it's plural
                 attribute.name = attribute.name[:-1]
             newTable.primaryKey.add(attribute) # add the attribute to the table's primary key
+            # update original FDs so that newly prime attribute is removed from any non-determinant (i.e. if original PK determined original multi-valued attribute)
+            fdsToRemove: set[FD.FunctionalDependency] = set()
+            for fd in [dependency for dependency in newTable.functionalDependencies if not dependency.isMultiValued]:
+                if attribute in fd.nonDeterminants and len(fd.nonDeterminants) > 1: # if non-determinant is not just the attribute, only remove the attribute
+                    fd.nonDeterminants.remove(attribute)
+                elif attribute in fd.nonDeterminants: # if non-determinant is only the newly prime attribute
+                    fdsToRemove.add(fd)
+            for fd in fdsToRemove: # remove old fd from table, if any
+                newTable.functionalDependencies.remove(fd)
+            # add a multi-valued FD to the table, in case 4NF wants to be reached
+            originalPK: set[A.Attribute] = set() 
+            for old_key in table.primaryKey: # get old primary key
+                for new_key in newTable.primaryKey:
+                    if new_key.name == old_key.name:
+                        originalPK.add(new_key)
+            newTable.functionalDependencies.add(FD.FunctionalDependency(originalPK, {attribute}, isMultiValued=True)) # make original PK determine new attribute
+
     # add a trivial FD to the new table
     newTable.functionalDependencies.add(FD.FunctionalDependency(newTable.primaryKey, newTable.primaryKey))
+
     # update name if necessary (more attributes added to PK)
     if len(newTable.primaryKey) > len(table.primaryKey):
         primeAttributeNames: list[str] = [attr.name for attr in newTable.primaryKey]
         newTableName: str = "".join(primeAttributeNames)
         newTable.name = newTableName + 's'
+    
+    # create new data tuples for 
+    for attr in newTable.getPrimeAttributes():
+        if attr.name not in [attr.name for attr in table.getPrimeAttributes()]:
+            newDataTuples: list[dict[str,list[str]]] = []
+            for tuple in table.dataTuples:
+                for value in tuple[attr.name+'s']: # since attribute name became singular, need to make it plural
+                    newTuple: dict[str,list[str]] = copy(tuple)
+                    newTuple.pop(attr.name+'s') # remove old attribute's key value pair
+                    newTuple[attr.name] = [value] # add new attribute's key value pair
+                    newDataTuples.append(newTuple)
+            newTable.dataTuples = newDataTuples
 
     return {newTable}
 
