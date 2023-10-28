@@ -119,8 +119,15 @@ class DatabaseSchema:
             for attr in table.attributes:
                 if attr.isPrime:
                     output += attr.name + ", "
-            output += "}\n"
-            output += "\nFunctional Dependencies: \n"
+            output += "}\n\n"
+            for attr in table.attributes:
+                output += f"{attr.name} \t"
+            output += "\n"
+            for tuple in table.dataTuples:
+                for attr in table.attributes:
+                    output += (tuple[attr.name][0] + " \t")
+                output += "\n"
+            output += "\n\nFunctional Dependencies: \n"
             for fd in table.functionalDependencies:
                 output += "\t{ "
                 for attr in fd.determinants:
