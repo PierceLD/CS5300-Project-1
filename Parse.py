@@ -27,7 +27,6 @@ def csvParse(filename: str) -> tuple[set[A.Attribute], list[dict[str, list[str]]
         for attribute in attributes:
             for tuple in tuples: # check each data tuple
                 cell: list[str] = tuple[attribute.name]
-                print(cell)
                 if len(cell) > 1: # if multiple data values in one cell
                     attribute.isMultiValued = True
                     break # no need to check other tuples if multi-valued cell is found
