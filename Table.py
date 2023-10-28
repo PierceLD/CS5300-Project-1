@@ -119,12 +119,21 @@ class Table:
 
 """ This function will put the correct projections of data
     from the original input table's data tuples into all of
-    the new decomposed relations
+    the new decomposed relations.
     Input: the original data tuples, a set decomposed/altered relations
-    Output: None
+    Output: None, modifies each table in newTables in-place
 """
-def projectData(originalTuples: list[dict[str, list[str]]], newTables: set[Table]) -> None:
-    pass
+def projectData(originalTuples: list[dict[str,list[str]]], newTables: set[Table]) -> None:
+    for table in newTables:
+        newDataTuples: list[dict[str,list[str]]] = []
+        for tuple in originalTuples:
+            newTuple: dict[str,list[str]] = dict()
+            for attr in table.attributes:
+                newTuple[attr.name] = copy(tuple[attr.name])
+            if newTuple not in newDataTuples: # if not already in new list of tuples (removes duplicates)
+                newDataTuples.append(newTuple)
+        table.dataTuples = copy(newDataTuples)
+    return
 
 
 """ The following are the normalization functions (1NF to 5NF)
@@ -181,7 +190,7 @@ def normalizeTo1NF(table: Table) -> set[Table]:
                     newTuple.pop(attr.name+'s') # remove old attribute's key value pair
                     newTuple[attr.name] = [value] # add new attribute's key value pair
                     newDataTuples.append(newTuple)
-            newTable.dataTuples = newDataTuples
+            newTable.dataTuples = copy(newDataTuples)
 
     return {newTable}
 
@@ -241,6 +250,9 @@ def normalizeTo2NF(table: Table) -> set[Table]:
                     if nonDeterminant.name == attr.name:
                         nonDeterminant = attr
 
+    # project original data into new tables
+    projectData(table.dataTuples, newTables)
+
     return newTables
         
 def normalizeTo3NF(table: Table) -> set[Table]:
@@ -289,6 +301,9 @@ def normalizeTo3NF(table: Table) -> set[Table]:
                 for attr in newTable.attributes:
                     if nonDeterminant.name == attr.name:
                         nonDeterminant = attr
+
+    # project original data into new tables
+    projectData(table.dataTuples, newTables)
 
     return newTables
 
@@ -348,6 +363,9 @@ def normalizeToBCNF(table: Table) -> set[Table]:
                 if fdAttrNames <= set([attr.name for attr in newTable.attributes]): # if union of fd attributes is subset of the newTable's attributes
                     newTable.functionalDependencies.add(fd) # add MVFD to new table's FDs
 
+    # project original data into new tables
+    projectData(table.dataTuples, newTables)
+
     return newTables
 
 def normalizeTo4NF(table: Table) -> set[Table]:
@@ -377,6 +395,10 @@ def normalizeTo4NF(table: Table) -> set[Table]:
     newBaseTable: Table = Table(newAttributes, newFunctionalDependencies) # TODO i think this might be empty
     if len(newFunctionalDependencies) > 0:
         newTables.add(newBaseTable)"""
+
+    # project original data into new tables
+    projectData(table.dataTuples, newTables)
+
     return newTables
     
 def normalizeTo5NF(table: Table) -> set[Table]:
