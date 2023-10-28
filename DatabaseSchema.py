@@ -125,7 +125,10 @@ class DatabaseSchema:
                 output += "\t{ "
                 for attr in fd.determinants:
                     output += attr.name + ", "
-                output += "} -> { "
+                if fd.isMultiValued:
+                    output += "} ->-> { "
+                else:
+                    output += "} -> { "
                 for attr in fd.nonDeterminants:
                     output += attr.name + ", "
                 output += "}\n\n"

@@ -21,7 +21,10 @@ class FunctionalDependency:
             returnString += determinant.__str__()
             if i < len(self.determinants) - 1:
                 returnString += ", "
-        returnString += "} -> {"
+        if self.isMultiValued:
+            returnString += "} ->-> {"
+        else:
+            returnString += "} -> {"
         for i, nonDeterminant in enumerate(self.nonDeterminants):
             returnString += nonDeterminant.__str__()
             if i < len(self.nonDeterminants) - 1:
