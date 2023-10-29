@@ -21,10 +21,13 @@ class DatabaseSchema:
     original_table: T.Table
     tables: list[T.Table]
     
-    def __init__(self, original_table: T.Table, tables: list[T.Table] = []) -> None:
-        self.original_table = deepcopy(original_table)
-        self.tables = tables
-        self.tables.append(self.original_table) # add og input table to list of tables
+    def __init__(self, tables: list[T.Table]) -> None:
+        self.tables = tables        
+    
+    # def __init__(self, original_table: T.Table, tables: list[T.Table] = []) -> None:
+    #     self.original_table = deepcopy(original_table)
+    #     self.tables = tables
+    #     self.tables.append(self.original_table) # add og input table to list of tables
 
     """ General method to normalize all tables in the schema in-place
         to specified normal form; calls each normalization function for entire DB schema
@@ -149,19 +152,23 @@ class DatabaseSchema:
     def makeSvg(self) -> None:
         node_attributes = {'shape': 'record'}
         dot = graphviz.Digraph(node_attr=node_attributes)
+        dot.graph_attr['rankdir'] = 'LR'
+        print(self.tables)
         for table in self.tables:
-            label: str = "{" + table.name + "} | {"
+            label: str = "<<B>" + table.name + "</B> | {"
             count = 0
             for attribute in table.attributes:
-                if count == len(table.attributes):
-                    label += attribute.name + "}"
+                if count == len(table.attributes)-1:
+                    label += attribute.__str__() + "}>"
                 else:
-                    label += attribute.name + " | " 
+                    label += attribute.__str__() + " | "
+                count += 1 
+            print(label)
             dot.node(table.name.replace(" ", ""), label)
         graphs =  pydot.graph_from_dot_data(dot.source)
         svg_string = graphs[0].create_svg()
         
-        graph_svg_file = open("Normalized.svg", "w")
+        graph_svg_file = open("normalized.svg", "w")
 
         graph_svg_file.write(svg_string.decode())
 
