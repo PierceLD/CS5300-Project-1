@@ -67,11 +67,24 @@ class Table:
                 return False
         return True
     
+        """ Assumptions:
+            a table wit 1 or 2 attributes is in 5NF
+            a table with more than 5 attributes is not in 5NF
+            a table is in 5NF if it has a least one attribute that is not part of the primary key
+        """
     def is5NF(self) -> bool:
         if not self.is4NF():
             return False
-        return False
-
+        if len(self.attributes < 3):
+            return True
+        if len(self.attributes) > 5:
+            return False
+        for attribute in self.attributes:
+            if not attribute.isPrime:
+                return True
+        if len(self.attributes) == 3:
+            pass
+        
     
     def isSuperkey(self, attributes: set[A.Attribute]) -> bool:
         # Helper function to check if a set of attributes is a superkey
