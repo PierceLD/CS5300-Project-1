@@ -296,7 +296,7 @@ def createReferenceTable(databaseSchema: DatabaseSchema) -> list[str]:
 
             # create SQL attribute declarations
             for attr in ref_table_attributes:
-                if key.dataType == "VARCHAR":
+                if attr[1] == "VARCHAR":
                     table_query += f"\t{attr[0]} {attr[1]}(100),\n"
                 else:
                     table_query += f"\t{attr[0]} {attr[1]},\n"
