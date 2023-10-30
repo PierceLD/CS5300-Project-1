@@ -29,7 +29,7 @@ class Table:
         if not self.is1NF():
             return False
         for functionalDependency in self.functionalDependencies:
-            if not functionalDependency.isMultiValued and functionalDependency.determinants < self.primaryKey: # if any of the determinants are a proper subset of the primary key (indicates partial FD)
+            if (not functionalDependency.isMultiValued) and (functionalDependency.determinants < self.primaryKey): # if any of the determinants are a proper subset of the primary key (indicates partial FD)
                 return False
         return True
 
@@ -193,14 +193,21 @@ def normalizeTo1NF(table: Table) -> set[Table]:
         newTableName: str = "".join(primeAttributeNames)
         newTable.name = newTableName + 's'
     
-    # create new data tuples for 
+    # create new data tuples
     for attr in newTable.getPrimeAttributes():
         if attr.name not in [attr.name for attr in table.getPrimeAttributes()]:
             newDataTuples: list[dict[str,list[str]]] = []
             for tuple in table.dataTuples:
-                for value in tuple[attr.name+'s']: # since attribute name became singular, need to make it plural
+                try:
+                    attr_key: list[str] = tuple[attr.name+'s']
+                except:
+                    attr_key = tuple[attr.name]
+                for value in attr_key: # since attribute name became singular, need to make it plural
                     newTuple: dict[str,list[str]] = copy(tuple)
-                    newTuple.pop(attr.name+'s') # remove old attribute's key value pair
+                    try:
+                        newTuple.pop(attr.name+'s') # remove old attribute's key value pair
+                    except:
+                        newTuple.pop(attr.name)
                     newTuple[attr.name] = [value] # add new attribute's key value pair
                     newDataTuples.append(newTuple)
             newTable.dataTuples = copy(newDataTuples)
@@ -394,7 +401,7 @@ def normalizeTo4NF(table: Table) -> set[Table]:
             for attribute in newAttributes:
                 attribute.isPrime = True
             removedAttributes.update(functionalDependency.nonDeterminants)
-            newFunctionalDependency: set[FD.FunctionalDependency] = {FD.FunctionalDependency(newAttributes, newAttributes, True)}
+            newFunctionalDependency: set[FD.FunctionalDependency] = {FD.FunctionalDependency(functionalDependency.determinants, functionalDependency.nonDeterminants, True)}
             primeAttributes: list[str] = [a.name for a in newAttributes if a.isPrime]
             newTableName: str = "".join(primeAttributes)
             newTable: Table =  Table(newAttributes, newFunctionalDependency, newTableName + 's')
@@ -408,6 +415,27 @@ def normalizeTo4NF(table: Table) -> set[Table]:
     newBaseTable: Table = Table(newAttributes, newFunctionalDependencies) # TODO i think this might be empty
     if len(newFunctionalDependencies) > 0:
         newTables.add(newBaseTable)"""
+    
+    # add any normal dependencies to appropriate new table, if it still holds for the new table's attributes
+    for newTable in newTables:
+        table_attr_names: set[str] = set([a.name for a in newTable.attributes])
+        for fd in nonMultiValuedDependencies:
+            fd_attrs: set[A.Attribute] = fd.determinants.union(fd.nonDeterminants)
+            fd_attr_names: set[str] = set([attr.name for attr in fd_attrs])
+            if fd_attr_names <= table_attr_names: # add the fd if the union of it's determinant and non-determinant is a subset of the new table's attributes
+                newTable.functionalDependencies.add(fd)  
+    
+    # make sure attributes in all FDs are referencing an attribute in newTable.attributes list
+    for newTable in newTables:
+        for functionalDependency in newTable.functionalDependencies:
+            for determinant in functionalDependency.determinants:
+                for attr in newTable.attributes:
+                    if determinant.name == attr.name:
+                        determinant = attr
+            for nonDeterminant in functionalDependency.nonDeterminants:
+                for attr in newTable.attributes:
+                    if nonDeterminant.name == attr.name:
+                        nonDeterminant = attr
 
     # project original data into new tables
     projectData(table.dataTuples, newTables)
