@@ -1,4 +1,3 @@
-# basically a list of attributes and functional dependencies
 from copy import deepcopy, copy
 import Attribute as A
 import FunctionalDependency as FD
@@ -67,11 +66,11 @@ class Table:
                 return False
         return True
     
-        """ Assumptions:
-            a table wit 1 or 2 attributes is in 5NF
-            a table with more than 5 attributes is not in 5NF
-            a table is in 5NF if it has a least one attribute that is not part of the primary key
-        """
+    """ Assumptions:
+        a table with 1 or 2 attributes is in 5NF
+        a table with more than 5 attributes is not in 5NF
+        a table is in 5NF if it has a least one attribute that is not part of the primary key
+    """
     def is5NF(self) -> bool:
         if not self.is4NF():
             return False
@@ -182,7 +181,13 @@ def normalizeTo1NF(table: Table) -> set[Table]:
                 for new_key in newTable.primaryKey:
                     if new_key.name == old_key.name:
                         originalPK.add(new_key)
-            newTable.functionalDependencies.add(FD.FunctionalDependency(originalPK, {attribute}, isMultiValued=True)) # make original PK determine new attribute
+            addNewMVFD: bool = True
+            newMVFD: FD.FunctionalDependency = FD.FunctionalDependency(originalPK, {attribute}, isMultiValued=True)
+            for fd in newTable.functionalDependencies: # check if MVFD is already in set of FDs, then don't add a new one
+                if newMVFD.determinants == fd.determinants and newMVFD.nonDeterminants == fd.nonDeterminants:
+                    addNewMVFD = False
+            if addNewMVFD:
+                newTable.functionalDependencies.add(newMVFD) # make original PK determine new attribute
 
     # add a trivial FD to the new table
     newTable.functionalDependencies.add(FD.FunctionalDependency(newTable.primaryKey, newTable.primaryKey))
@@ -194,23 +199,25 @@ def normalizeTo1NF(table: Table) -> set[Table]:
         newTable.name = newTableName + 's'
     
     # create new data tuples
+    originalDataTuples: list[dict[str,list[str]]] = copy(table.dataTuples)
     for attr in newTable.getPrimeAttributes():
-        if attr.name not in [attr.name for attr in table.getPrimeAttributes()]:
-            newDataTuples: list[dict[str,list[str]]] = []
-            for tuple in table.dataTuples:
+        if attr.name not in [attr.name for attr in table.getPrimeAttributes()]: # if attr wasn't originally in primary key
+            prev_length: int = len(originalDataTuples)
+            for t in range(prev_length): # go thru original table's data tuples
                 try:
-                    attr_key: list[str] = tuple[attr.name+'s']
+                    attr_val: list[str] = originalDataTuples[t][attr.name+'s']
                 except:
-                    attr_key = tuple[attr.name]
-                for value in attr_key: # since attribute name became singular, need to make it plural
-                    newTuple: dict[str,list[str]] = copy(tuple)
+                    attr_val = originalDataTuples[t][attr.name]
+                for value in attr_val: # since attribute name became singular, need to make it plural
+                    newTuple: dict[str,list[str]] = copy(originalDataTuples[t])
                     try:
                         newTuple.pop(attr.name+'s') # remove old attribute's key value pair
                     except:
                         newTuple.pop(attr.name)
                     newTuple[attr.name] = [value] # add new attribute's key value pair
-                    newDataTuples.append(newTuple)
-            newTable.dataTuples = copy(newDataTuples)
+                    originalDataTuples.append(newTuple)
+            originalDataTuples = originalDataTuples[prev_length:] # editing list in-place so need to use indexing and splicing to get correct tuples
+    newTable.dataTuples = copy(originalDataTuples)
 
     return {newTable}
 
@@ -341,7 +348,7 @@ def normalizeToBCNF(table: Table) -> set[Table]:
             newAttrs: set[A.Attribute] = deepcopy(originalTable.attributes.difference(functionalDependency.nonDeterminants))
             for attr in newAttrs: # make attributes from X prime
                 attr.isPrime = True
-            newFunctionalDependency: FD.FunctionalDependency = FD.FunctionalDependency(newAttrs, newAttrs)
+            newFunctionalDependency: FD.FunctionalDependency = FD.FunctionalDependency(newAttrs, newAttrs) # adds a new trivial FD to R-A table
             primeAttributes: list[str] = [a.name for a in newAttrs if a.isPrime]
             newTableName: str = "".join(primeAttributes)
             newTable = deepcopy(Table(newAttrs, {newFunctionalDependency}, newTableName + 's'))
@@ -352,11 +359,9 @@ def normalizeToBCNF(table: Table) -> set[Table]:
             for attr in newAttrs: # update each attribute's prime status
                 for determinant in functionalDependency.determinants:
                     if attr.name == determinant.name:
-                        print("Determinant", attr)
                         attr.isPrime = True
                 for nonDeterminant in functionalDependency.nonDeterminants:
                     if attr.name == nonDeterminant.name:
-                        print("Non", attr)
                         attr.isPrime = False
             primeAttributes: list[str] = [a.name for a in newAttrs if a.isPrime]
             newTableName: str = "".join(primeAttributes)
