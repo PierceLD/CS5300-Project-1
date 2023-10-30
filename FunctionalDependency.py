@@ -1,7 +1,4 @@
-# two lists of attributes
-# one for the prime attributes and one for the non-prime attributes
 import Attribute
-
 
 class FunctionalDependency:
     determinants: set[Attribute.Attribute]
@@ -42,3 +39,4 @@ class FunctionalDependency:
     
     def getNonDeterminantNames(self) -> set[str]:
         return set([attr.name for attr in self.nonDeterminants])
+
