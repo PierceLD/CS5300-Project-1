@@ -1,15 +1,23 @@
 import Attribute as A
-import Row as R
 
 class DataTable():
     attributeSet: set[A.Attribute]
-    rowList: list[R.Row]
+    rowList: list['Row']
     
-    def __init__(self, attributeSet: set[A.Attribute], rowList: list[R.Row]) -> None:
+    def __init__(self, attributeSet: set[A.Attribute], rowList: list['Row']) -> None:
         self.attributeSet = attributeSet
         self.rowList = rowList
         
-    def addRow(self, row: R.Row) -> None:
+    def __str__(self) -> str:
+        returnStr: str = ""
+        for attribute in self.attributeSet:
+            returnStr += attribute.name + ", "
+        returnStr += "\n"
+        for row in self.rowList:
+            returnStr += row.__str__() + "\n"
+        return returnStr
+        
+    def addRow(self, row: 'Row') -> None:
         self.rowList.append(row)    
     
     def project(self, projectSet: set[A.Attribute]) -> 'DataTable':
@@ -26,16 +34,36 @@ class DataTable():
             for joinRow in joinTable.rowList:
                 shouldJoinRows: bool = True
                 for attribute in joinAttributes:
-                    if row.rowDictionary[attribute] != joinRow.rowDictionary[attribute]:
+                    if not row.rowDictionary[attribute] == joinRow.rowDictionary[attribute]:
                         shouldJoinRows = False
                         
                 if shouldJoinRows:
                     newRowDictionary: dict[A.Attribute, str] = {}
                     for attribute in newAttributeSet:
                         if attribute in self.attributeSet:
-                            newAttributeSet[attribute] = row.rowDictionary[attribute]
+                            newRowDictionary[attribute] = row.rowDictionary[attribute]
                         else:
-                            newAttributeSet[attribute] = joinRow.rowDictionary[attribute]
-                    newDataTable.addRow(R.Row(newAttributeSet, newRowDictionary))
+                            newRowDictionary[attribute] = joinRow.rowDictionary[attribute]
+                    newDataTable.addRow(Row(newAttributeSet, newRowDictionary))
         return newDataTable
             
+
+class Row():
+    dataTable: DataTable
+    rowDictionary: dict[A.Attribute, str]
+    
+    def __init__(self, dataTable: DataTable, rowDictionary: dict[A.Attribute, str]) -> None:
+        self.dataTable = dataTable
+        self.rowDictionary = rowDictionary
+    
+    def project(self, projectSet: set[A.Attribute], newDataTable: DataTable) -> 'Row':
+        newRowDictionary: dict[A.Attribute, str] = {}
+        for attribute in projectSet:
+            newRowDictionary[attribute] = self.rowDictionary[attribute]
+        return Row(newDataTable, newRowDictionary)
+    
+    def __str__(self) -> str:
+        returnStr: str = ""
+        for key in self.rowDictionary:
+            returnStr += self.rowDictionary[key] + ", "
+        return returnStr
