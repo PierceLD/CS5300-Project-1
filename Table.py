@@ -130,19 +130,30 @@ class Table:
         elif len(self.getPrimeAttributes()) == 0:
             return "No prime attributes available"
 
-        max_name_length = max(len(attr.name) for attr in self.attributes)
-        total_width = (max_name_length + 4) * len(self.attributes) + 10
+        attr_list: list[A.Attribute] = [attr for attr in self.attributes]
+        max_name_length = max(len(attr.name) for attr in attr_list)
+
+        for tuple in self.dataTuples:
+            for attr in attr_list:
+                if len(tuple[attr.name][0]) > max_name_length:
+                    max_name_length = len(tuple[attr.name][0])
+
+        total_width = (max_name_length + 4) * len(attr_list) + 10
         border = "+" + "-" * (total_width - 2) + "+\n"
         result = border
 
-        names = " | ".join([f"{'(PK)' if attr.isPrime else ''}{attr.name:{max_name_length}}" for attr in self.attributes])
+        names = " | ".join([f"{'(PK)' if attr.isPrime else ''}{attr.name:{max_name_length}}" for attr in attr_list])
         result += f"| {names:{total_width - 4}} |\n"  # Adjusted alignment and spacing
         result += border
 
+        for tuple in self.dataTuples:
+            values = " | ".join([f"{tuple[attr.name][0]:{max_name_length}}" for attr in attr_list])
+            result += f"| {values:{total_width - 4}} |\n"  # Adjusted alignment and spacing
+            result += border
 
         result += "Functional Dependencies:\n"
         for fd in self.functionalDependencies:
-            result+="\t" + fd.__str__() + "\n"
+            result += "\t" + fd.__str__() + "\n"
         return result
 
 
@@ -162,6 +173,22 @@ def projectData(originalTuples: list[dict[str,list[str]]], newTables: set[Table]
             if newTuple not in newDataTuples: # if not already in new list of tuples (removes duplicates)
                 newDataTuples.append(newTuple)
         table.dataTuples = copy(newDataTuples)
+    return
+
+""" Helper function to make any attribute in a FD reference an
+    Attribute object in the list of table's attributes
+    Input: Table
+    Output: None"""
+def makeFDReferenceAttributes(table: Table) -> None:
+    for functionalDependency in table.functionalDependencies:
+            for determinant in functionalDependency.determinants:
+                for attr in table.attributes:
+                    if determinant.name == attr.name:
+                        determinant = attr
+            for nonDeterminant in functionalDependency.nonDeterminants:
+                for attr in table.attributes:
+                    if nonDeterminant.name == attr.name:
+                        nonDeterminant = attr
     return
 
 
@@ -284,7 +311,7 @@ def normalizeTo2NF(table: Table) -> set[Table]:
 
     # make sure attributes in all FDs are referencing an attribute in newTable.attributes list
     for newTable in newTables:
-        for functionalDependency in newTable.functionalDependencies:
+        """for functionalDependency in newTable.functionalDependencies:
             for determinant in functionalDependency.determinants:
                 for attr in newTable.attributes:
                     if determinant.name == attr.name:
@@ -292,7 +319,8 @@ def normalizeTo2NF(table: Table) -> set[Table]:
             for nonDeterminant in functionalDependency.nonDeterminants:
                 for attr in newTable.attributes:
                     if nonDeterminant.name == attr.name:
-                        nonDeterminant = attr
+                        nonDeterminant = attr"""
+        makeFDReferenceAttributes(newTable)
 
     # project original data into new tables
     projectData(table.dataTuples, newTables)
@@ -336,7 +364,7 @@ def normalizeTo3NF(table: Table) -> set[Table]:
 
     # make sure attributes in all FDs are referencing an attribute in newTable.attributes list
     for newTable in newTables:
-        for functionalDependency in newTable.functionalDependencies:
+        """for functionalDependency in newTable.functionalDependencies:
             for determinant in functionalDependency.determinants:
                 for attr in newTable.attributes:
                     if determinant.name == attr.name:
@@ -344,7 +372,8 @@ def normalizeTo3NF(table: Table) -> set[Table]:
             for nonDeterminant in functionalDependency.nonDeterminants:
                 for attr in newTable.attributes:
                     if nonDeterminant.name == attr.name:
-                        nonDeterminant = attr
+                        nonDeterminant = attr"""
+        makeFDReferenceAttributes(newTable)
 
     # project original data into new tables
     projectData(table.dataTuples, newTables)
@@ -384,7 +413,7 @@ def normalizeToBCNF(table: Table) -> set[Table]:
             newTableName: str = "".join(primeAttributes)
             newTable = deepcopy(Table(newAttrs, {functionalDependency}, newTableName + 's'))
 
-            for dependency in newTable.functionalDependencies: # update FDs
+            """for dependency in newTable.functionalDependencies: # update FDs
                 for determinant in dependency.determinants:
                     for attr in newTable.attributes:
                         if determinant.name == attr.name:
@@ -392,7 +421,8 @@ def normalizeToBCNF(table: Table) -> set[Table]:
                 for nonDeterminant in dependency.nonDeterminants:
                     for attr in newTable.attributes:
                         if nonDeterminant.name == attr.name:
-                            nonDeterminant = attr
+                            nonDeterminant = attr"""
+            makeFDReferenceAttributes(newTable)
             newTables.add(newTable)
 
     # loop thru newTables to determine where to add multi-valued FDs, if any
@@ -449,7 +479,7 @@ def normalizeTo4NF(table: Table) -> set[Table]:
     
     # make sure attributes in all FDs are referencing an attribute in newTable.attributes list
     for newTable in newTables:
-        for functionalDependency in newTable.functionalDependencies:
+        """for functionalDependency in newTable.functionalDependencies:
             for determinant in functionalDependency.determinants:
                 for attr in newTable.attributes:
                     if determinant.name == attr.name:
@@ -457,7 +487,8 @@ def normalizeTo4NF(table: Table) -> set[Table]:
             for nonDeterminant in functionalDependency.nonDeterminants:
                 for attr in newTable.attributes:
                     if nonDeterminant.name == attr.name:
-                        nonDeterminant = attr
+                        nonDeterminant = attr"""
+        makeFDReferenceAttributes(newTable)
 
     # project original data into new tables
     projectData(table.dataTuples, newTables)
@@ -467,3 +498,4 @@ def normalizeTo4NF(table: Table) -> set[Table]:
 def normalizeTo5NF(table: Table) -> set[Table]:
     if table.is5NF():
         return {table}
+    
