@@ -11,6 +11,7 @@ def csvParse(filename: str) -> tuple[set[A.Attribute], list[dict[str, list[str]]
     with open(filename, 'r') as csv_file:
         csv_reader = csv.reader(csv_file)
         headings: list[str] = next(csv_reader) # gets first line of file (attributes)
+        headings = [h.strip() for h in headings]
         attributes: list[A.Attribute] = []
         tuples: list[dict[str, list[str]]] = []
         for tuple in csv_reader:

@@ -169,9 +169,9 @@ def normalizeTo1NF(table: Table) -> set[Table]:
             # update original FDs so that newly prime attribute is removed from any non-determinant (i.e. if original PK determined original multi-valued attribute)
             fdsToRemove: set[FD.FunctionalDependency] = set()
             for fd in [dependency for dependency in newTable.functionalDependencies if not dependency.isMultiValued]:
-                if attribute in fd.nonDeterminants and len(fd.nonDeterminants) > 1: # if non-determinant is not just the attribute, only remove the attribute
+                if (attribute in fd.nonDeterminants) and (len(fd.nonDeterminants) > 1): # if non-determinant is not just the attribute, only remove the attribute
                     fd.nonDeterminants.remove(attribute)
-                elif attribute in fd.nonDeterminants: # if non-determinant is only the newly prime attribute
+                elif {attribute} == fd.nonDeterminants: # if non-determinant is only the newly prime attribute
                     fdsToRemove.add(fd)
             for fd in fdsToRemove: # remove old fd from table, if any
                 newTable.functionalDependencies.remove(fd)
