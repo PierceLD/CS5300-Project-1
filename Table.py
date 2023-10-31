@@ -2,6 +2,7 @@
 from copy import deepcopy, copy
 import Attribute as A
 import FunctionalDependency as FD
+import DataTable as DT
 
 class Table:
     name: str
@@ -9,6 +10,7 @@ class Table:
     primaryKey: set[A.Attribute]
     functionalDependencies: set[FD.FunctionalDependency]
     dataTuples: list[dict[str, list[str]]]
+    dataTable: DT.DataTable
     
     def __init__(self, attributes: set[A.Attribute], functionalDependencies: set[FD.FunctionalDependency], name: str = "") -> None:
         self.attributes = attributes
@@ -75,7 +77,7 @@ class Table:
     def is5NF(self) -> bool:
         if not self.is4NF():
             return False
-        if len(self.attributes < 3):
+        if len(self.attributes) < 3:
             return True
         if len(self.attributes) > 5:
             return False
@@ -83,7 +85,22 @@ class Table:
             if not attribute.isPrime:
                 return True
         if len(self.attributes) == 3:
-            pass
+            print("we are doing the correct thing")
+            dataTables: list[DT.DataTable] = []
+            for attribute in self.attributes:
+                dataTables.append(self.dataTable.project(self.attributes.difference(set({attribute}))))
+            print(self.dataTable)
+            for table in dataTables:
+                print(table)
+                for joinTable in dataTables:
+                    if table is joinTable:
+                        continue
+                    testJoinTable: DT.DataTable = table.equalJoin(table.attributeSet.intersection(joinTable.attributeSet), joinTable)
+                    print(testJoinTable)
+                    print(testJoinTable.equal(self.dataTable))
+                    if testJoinTable.equal(self.dataTable):
+                        return False
+        return True
         
     
     def isSuperkey(self, attributes: set[A.Attribute]) -> bool:

@@ -46,6 +46,22 @@ class DataTable():
                             newRowDictionary[attribute] = joinRow.rowDictionary[attribute]
                     newDataTable.addRow(Row(newAttributeSet, newRowDictionary))
         return newDataTable
+    
+    def equal(self, otherTable: 'DataTable') -> bool:
+        if len(self.attributeSet) != len(self.attributeSet.union(otherTable.attributeSet)):
+            return False
+        if len(self.rowList) != len(otherTable.rowList):
+            return False
+        for row in self.rowList:
+            if not otherTable.contains(row):
+                return False
+        return True
+    
+    def contains(self, testRow: 'Row') -> bool:
+        for row in self.rowList:
+            if testRow.equal(row):
+                return True
+        return False
             
 
 class Row():
@@ -67,3 +83,11 @@ class Row():
         for key in self.rowDictionary:
             returnStr += self.rowDictionary[key] + ", "
         return returnStr
+    
+    def equal(self, otherRow: 'Row') -> bool:
+        if len(self.rowDictionary) != len(otherRow.rowDictionary):
+            return False
+        for key in self.rowDictionary:
+            if self.rowDictionary[key] == otherRow.rowDictionary[key]:
+                return False
+        return True

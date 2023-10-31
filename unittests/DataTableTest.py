@@ -1,12 +1,15 @@
 import unittest
 import Attribute as A
 import DataTable as DT
+import Table as T
 
 class DataTableTest(unittest.TestCase):
     # Define attributes for name, ID, and class
     name_attr = A.Attribute("Name")
     id_attr = A.Attribute("ID")
     class_attr = A.Attribute("Class")
+    attributes: set[A.Attribute] = set([name_attr, id_attr, class_attr])
+
 
     name_id_table: DT.DataTable = DT.DataTable(set([name_attr, id_attr]), [])
     id_class_table: DT.DataTable = DT.DataTable(set([class_attr, id_attr]), [])
@@ -37,15 +40,22 @@ class DataTableTest(unittest.TestCase):
     row18 = DT.Row(id_class_table, {id_attr: "008", class_attr: "Geography"})
     row19 = DT.Row(id_class_table, {id_attr: "009", class_attr: "Computer Science"})
     row20 = DT.Row(id_class_table, {id_attr: "010", class_attr: "Foreign Language"})
-    row21 = DT.Row(id_class_table, {id_attr: "001", class_attr: "History"})
-    table2 = [row11, row12, row13, row14, row15, row16, row17, row18, row19, row20, row21]
+    # row21 = DT.Row(id_class_table, {id_attr: "001", class_attr: "History"})
+    table2 = [row11, row12, row13, row14, row15, row16, row17, row18, row19, row20]
     for row in table2:
         id_class_table.addRow(row)
         
     joinedTable: DT.DataTable = name_id_table.equalJoin(name_id_table.attributeSet.intersection(id_class_table.attributeSet), id_class_table)
-        
+    
+    
+    
     def testProject(self) -> None:
         print(self.name_id_table)
         print(self.id_class_table)
         print(self.joinedTable)
         print(self.joinedTable.project(set([self.name_attr])))
+        
+    def test5NF(self) -> None: # this should be in the TableTest.py file but it is a lot easier to have it here and it does not really matter
+        table: T.Table = T.Table(attributes=self.attributes, functionalDependencies=set(), name="test table")
+        table.dataTable = self.joinedTable
+        print(table.is5NF())
