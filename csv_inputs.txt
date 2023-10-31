@@ -80,3 +80,9 @@ exit
 4
 1
 
+//5NF example from slides
+supply.csv
+Sname, Part_name, Proj_name
+exit
+5
+1
