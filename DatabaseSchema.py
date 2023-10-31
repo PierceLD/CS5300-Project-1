@@ -112,35 +112,8 @@ class DatabaseSchema:
         output: str = ""
 
         for table in self.tables:
-            output += f"\n{table.name}\n"
-            output += '-'*20
-            output += "\nAttributes: "
-            for attr in table.attributes:
-                output += attr.name + ", "
-            output += "\nPrimary Key: { "
-            for attr in table.attributes:
-                if attr.isPrime:
-                    output += attr.name + ", "
-            output += "}\n\n"
-            for attr in table.attributes:
-                output += f"{attr.name} \t"
-            output += "\n"
-            for tuple in table.dataTuples:
-                for attr in table.attributes:
-                    output += (tuple[attr.name][0] + " \t")
-                output += "\n"
-            output += "\n\nFunctional Dependencies: \n"
-            for fd in table.functionalDependencies:
-                output += "\t{ "
-                for attr in fd.determinants:
-                    output += attr.name + ", "
-                if fd.isMultiValued:
-                    output += "} ->-> { "
-                else:
-                    output += "} -> { "
-                for attr in fd.nonDeterminants:
-                    output += attr.name + ", "
-                output += "}\n\n"
+            output += f"\n\n{table.name}\n"
+            output += table.__str__()
 
         return output
 
@@ -306,7 +279,7 @@ def createReferenceTable(databaseSchema: DatabaseSchema) -> list[str]:
             for fd in table.functionalDependencies:
                 if fd.isMultiValued:
                     tableHasMVFDs = True
-            # TODO: REVISE, I DON'T THINK THIS IS GOOD ENOUGH
+
             if (table_PK < original_PK) and (not tableHasMVFDs): # if current table's PK is a proper subset of original PK (means original relation was split)
                 disconnected_tables.append(table)
 
