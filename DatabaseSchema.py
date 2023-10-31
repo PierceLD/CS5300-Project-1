@@ -128,10 +128,27 @@ class DatabaseSchema:
             count = 0
             for attribute in table.attributes:
                 if count == len(table.attributes)-1:
-                    label += attribute.__str__() + "}>"
+                    if attribute.isPrime:
+                        label += attribute.__str__() + "(PK)}"
+                    else:
+                        label += attribute.__str__() + "}"
                 else:
-                    label += attribute.__str__() + " | "
-                count += 1 
+                    if attribute.isPrime:
+                        label += attribute.__str__() + "(PK) | "
+                    else:
+                        label += attribute.__str__() + " | "
+                count += 1
+
+            for tuple in table.dataTuples:
+                label += " | {"
+                count = 0
+                for attr in table.attributes:
+                    if count == len(table.attributes)-1:
+                        label += tuple[attr.name][0] + "}"
+                    else:
+                        label += tuple[attr.name][0] + " | "
+                    count += 1
+            label += ">"
             print(label)
             dot.node(table.name.replace(" ", ""), label)
         graphs =  pydot.graph_from_dot_data(dot.source)
