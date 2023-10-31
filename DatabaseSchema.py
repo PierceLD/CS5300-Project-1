@@ -1,4 +1,3 @@
-# basically just a list of tables (needs to be changed to tables)
 import Table as T
 import Attribute as A
 import FunctionalDependency as FD
