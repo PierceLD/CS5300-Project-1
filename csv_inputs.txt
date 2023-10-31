@@ -1,0 +1,82 @@
+//1NF example from slides
+departments.csv
+Dnumber
+Dnumber -> Dname, Dmgr_ssn, Dlocations
+exit
+1
+1
+
+//1NF example from slides, with a MVFD
+departments.csv
+Dnumber
+Dnumber -> Dname, Dmgr_ssn
+Dnumber ->-> Dlocations
+exit
+1
+1
+
+//2NF example from slides
+emp_projs.csv
+Ssn, Pnumber
+Ssn, Pnumber -> Hours
+Ssn -> Ename
+Pnumber -> Pname, Plocation
+exit
+2
+1
+
+//3NF example from slides
+emp_depts.csv
+Ssn
+Ssn -> Ename, Bdate, Address, Dnumber
+Dnumber -> Dname, Dmgr_ssn
+exit
+3
+1
+
+//3NF example given
+students.csv
+StudentID, Course
+StudentID -> FirstName, LastName
+Course -> CourseStart, CourseEnd, Professor
+Professor -> ProfessorEmail
+exit
+3
+1
+
+//BCNF example from slides
+student_courses.csv
+StudentID, Course
+StudentID, Course -> Instructor
+Instructor -> Course
+exit
+B
+1
+
+//employees1.csv is the 4NF example that is not in 1NF yet, modified from slides to go thru 2NF also
+employees1.csv
+Ename
+Ename -> Address, Pname, Dname
+exit
+4
+1
+
+employees1.csv
+Ename
+Ename -> Address
+Ename ->-> Pname
+Ename ->-> Dname
+exit
+4
+1
+
+//employees2.csv is the 4NF example that is already in 1NF
+employees2.csv
+Ename, Pname, Dname
+Ename -> Address
+Ename ->-> Pname
+Ename ->-> Dname
+exit
+4
+1
+
