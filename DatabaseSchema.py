@@ -283,10 +283,13 @@ def createReferenceTable(databaseSchema: DatabaseSchema) -> list[str]:
     table_query: str = ""
     ref_table_name: str = ""
     ref_table_attributes: list[tuple[str, str]] = []
-    # pre check if there were no partial dependencies to begin with, then new table won't be made for a key in original PK
-    
+
 
     if (len(original_PK) > 1) and (len(databaseSchema.tables) > 1): # composite key indicates many to many relationship, if decomposed to 2NF
+        # check if there is a table whose primary key is the same as input table, if yes skip making the reference table
+        for table in databaseSchema.tables:
+            if set([key.name for key in table.primaryKey]) == set([key.name for key in databaseSchema.original_table.primaryKey]):
+                return table_query
 
         # first find the tables to reference
         disconnected_tables: list[T.Table] = []
