@@ -110,7 +110,8 @@ class DatabaseSchema:
     """
     def __str__(self) -> str:
         output: str = ""
-
+        """output += f"\n\n{self.original_table.name}\n"
+        output += self.original_table.__str__()"""
         for table in self.tables:
             output += f"\n\n{table.name}\n"
             output += table.__str__()
@@ -228,19 +229,6 @@ def normalizeTo4NF(databaseSchema: DatabaseSchema) -> list[T.Table]:
     return normalizedDatabaseSchema
 
 def normalizeTo5NF(databaseSchema: DatabaseSchema) -> list[T.Table]:
-    normalizedDatabaseSchema: list[T.Table] = []
-    normalized_tables: set[T.Table]
-
-    databaseSchema.tables = normalizeTo4NF(databaseSchema)
-
-    for table in databaseSchema.tables: # normalize each table in schema to 5NF
-        normalized_tables = T.normalizeTo5NF(table) 
-        for n_table in normalized_tables: # store each newly normalized table
-            normalizedDatabaseSchema.append(n_table)
-    
-    return normalizedDatabaseSchema
-
-def normalize(databaseSchema: DatabaseSchema, normalForm: NormalForm) -> DatabaseSchema:
     normalizedDatabaseSchema: list[T.Table] = []
     normalized_tables: set[T.Table]
 
