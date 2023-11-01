@@ -80,7 +80,6 @@ exit
 4
 1
 
-<<<<<<< HEAD
 //supply
 supply.csv
 Sname, Part_name, Proj_name
@@ -88,11 +87,10 @@ Sname, Part_name, Proj_name -> Sname, Part_name, Proj_name
 exit
 5
 1
-=======
+
 //5NF example from slides
 supply.csv
 Sname, Part_name, Proj_name
 exit
 5
 1
->>>>>>> 87187f0a496300159f810f7dac2e406c23015436

@@ -5,7 +5,7 @@ The following are necessary for correctly inputting data:
 - Run **main.py**
 - In the csv file, to indicate a multi-valued attribute in a single cell, wrap the cell data with double-quotes and separate data values with a comma. i.e "X,Y,Z" for a multi-valued attribute Project.
 - Indicate the primary key of the relation by typing the attribute names separated by a comma (if composite PK). i.e. StudentID, Course
-- Input all necessary, non-trivial functional dependencies.
+- Input all necessary, non-trivial functional dependencies (both regular and multi-valued):
     - For regular dependencies use a single arrow. 
         - i.e. `StudentID -> Course`
     - Separate attributes with a comma. 

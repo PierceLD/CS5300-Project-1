@@ -18,7 +18,6 @@ class Table:
         self.name = name
         self.dataTuples = []
         
-    # def TableDeepCopy(self, attributes: set[A.Attribute], primaryKey: set[A.Attribute], functionalDependencies: set[FD.FunctionalDependency], name: str = "") -> Table:
     
     def is1NF(self) -> bool:
         for attribute in self.attributes:
@@ -70,21 +69,21 @@ class Table:
     
     """ Assumptions:
         a table with 1 or 2 attributes is in 5NF
-        a table with more than 5 attributes is not in 5NF
+        a table with more than 3 prime attributes is not in 5NF
         a table is in 5NF if it has a least one attribute that is not part of the primary key
     """
     def is5NF(self) -> bool:
-        self.makeDataTable()
         if not self.is4NF():
             return False
-        if len(self.attributes) < 3:
+        self.makeDataTable()
+        if len(self.primaryKey) < 3:
             return True
-        if len(self.attributes) > 3:
+        if len(self.primaryKey) > 3:
             return False
         for attribute in self.attributes:
             if not attribute.isPrime:
                 return True
-        if len(self.attributes) == 3:
+        if len(self.primaryKey) == 3:
             dataTables: list[DT.DataTable] = []
             for attribute in self.attributes:
                 dataTables.append(self.dataTable.project(self.attributes.difference(set({attribute}))))
@@ -93,19 +92,7 @@ class Table:
             testJoinTable: DT.DataTable = DT.reduce(testJoinOne.equalJoin(testJoinOne.attributeSet.intersection(testJoinTwo.attributeSet), testJoinTwo))
             if testJoinTable.equal(self.dataTable):
                 return False
-            # for table in dataTables:
-            #     # print(table)
-            #     for joinTable in dataTables:
-            #         if table is joinTable:
-            #             continue
-            #         testJoinOne: DT.DataTable = DT.reduce(table.equalJoin(table.attributeSet.intersection(joinTable.attributeSet), joinTable))
-            #         testJoinTable: DT.DataTable = DT.reduce(table.equalJoin(table.attributeSet.intersection(joinTable.attributeSet), joinTable))
-            #         testJoinTable: DT.DataTable = DT.reduce(table.equalJoin(table.attributeSet.intersection(joinTable.attributeSet), joinTable))
-            #         print(len(testJoinTable.rowList))
-            #         # print(testJoinTable)
-            #         # print(testJoinTable.equal(self.dataTable))
-            #         if testJoinTable.equal(self.dataTable):
-            #             return False
+
         return True
     
     def setName(self) -> None:
@@ -292,6 +279,7 @@ def normalizeTo2NF(table: Table) -> set[Table]:
     
     newTables: set[Table] = set()
     originalTable: Table = deepcopy(table)
+
     # go thru FDs to find full FDs, where determinant = primary key, and partial FDs first
     for functionalDependency in originalTable.functionalDependencies:
         if not functionalDependency.isMultiValued:
@@ -332,15 +320,6 @@ def normalizeTo2NF(table: Table) -> set[Table]:
 
     # make sure attributes in all FDs are referencing an attribute in newTable.attributes list
     for newTable in newTables:
-        """for functionalDependency in newTable.functionalDependencies:
-            for determinant in functionalDependency.determinants:
-                for attr in newTable.attributes:
-                    if determinant.name == attr.name:
-                        determinant = attr
-            for nonDeterminant in functionalDependency.nonDeterminants:
-                for attr in newTable.attributes:
-                    if nonDeterminant.name == attr.name:
-                        nonDeterminant = attr"""
         makeFDReferenceAttributes(newTable)
 
     # project original data into new tables
@@ -385,15 +364,6 @@ def normalizeTo3NF(table: Table) -> set[Table]:
 
     # make sure attributes in all FDs are referencing an attribute in newTable.attributes list
     for newTable in newTables:
-        """for functionalDependency in newTable.functionalDependencies:
-            for determinant in functionalDependency.determinants:
-                for attr in newTable.attributes:
-                    if determinant.name == attr.name:
-                        determinant = attr
-            for nonDeterminant in functionalDependency.nonDeterminants:
-                for attr in newTable.attributes:
-                    if nonDeterminant.name == attr.name:
-                        nonDeterminant = attr"""
         makeFDReferenceAttributes(newTable)
 
     # project original data into new tables
@@ -434,15 +404,6 @@ def normalizeToBCNF(table: Table) -> set[Table]:
             newTableName: str = "".join(primeAttributes)
             newTable = deepcopy(Table(newAttrs, {functionalDependency}, newTableName + 's'))
 
-            """for dependency in newTable.functionalDependencies: # update FDs
-                for determinant in dependency.determinants:
-                    for attr in newTable.attributes:
-                        if determinant.name == attr.name:
-                            determinant = attr
-                for nonDeterminant in dependency.nonDeterminants:
-                    for attr in newTable.attributes:
-                        if nonDeterminant.name == attr.name:
-                            nonDeterminant = attr"""
             makeFDReferenceAttributes(newTable)
             newTables.add(newTable)
 
@@ -463,7 +424,7 @@ def normalizeToBCNF(table: Table) -> set[Table]:
 
 def normalizeTo4NF(table: Table) -> set[Table]:
     if table.is4NF():
-        return {table}
+        return {deepcopy(table)}
     newTables: set[Table] = set()
     removedAttributes: set[A.Attribute] = set()
     nonMultiValuedDependencies: set[FD.FunctionalDependency] = set()
@@ -477,17 +438,10 @@ def normalizeTo4NF(table: Table) -> set[Table]:
             newFunctionalDependency: set[FD.FunctionalDependency] = {FD.FunctionalDependency(functionalDependency.determinants, functionalDependency.nonDeterminants, True)}
             primeAttributes: list[str] = [a.name for a in newAttributes if a.isPrime]
             newTableName: str = "".join(primeAttributes)
-            newTable: Table =  Table(newAttributes, newFunctionalDependency, newTableName + 's')
+            newTable: Table = Table(newAttributes, newFunctionalDependency, newTableName + 's')
             newTables.add(newTable)
         else:
             nonMultiValuedDependencies.add(functionalDependency)
-            
-    # make a new table that has all the removed attributes, TODO: i don't think this is necessary since input table is going to be split
-    """newAttributes: set[A.Attribute] = deepcopy(table.attributes.difference(removedAttributes))
-    newFunctionalDependencies: set[FD.FunctionalDependency] = deepcopy(nonMultiValuedDependencies)
-    newBaseTable: Table = Table(newAttributes, newFunctionalDependencies) # TODO i think this might be empty
-    if len(newFunctionalDependencies) > 0:
-        newTables.add(newBaseTable)"""
     
     # add any normal dependencies to appropriate new table, if it still holds for the new table's attributes
     for newTable in newTables:
@@ -500,15 +454,6 @@ def normalizeTo4NF(table: Table) -> set[Table]:
     
     # make sure attributes in all FDs are referencing an attribute in newTable.attributes list
     for newTable in newTables:
-        """for functionalDependency in newTable.functionalDependencies:
-            for determinant in functionalDependency.determinants:
-                for attr in newTable.attributes:
-                    if determinant.name == attr.name:
-                        determinant = attr
-            for nonDeterminant in functionalDependency.nonDeterminants:
-                for attr in newTable.attributes:
-                    if nonDeterminant.name == attr.name:
-                        nonDeterminant = attr"""
         makeFDReferenceAttributes(newTable)
 
     # project original data into new tables
@@ -518,10 +463,11 @@ def normalizeTo4NF(table: Table) -> set[Table]:
     
 def normalizeTo5NF(table: Table) -> set[Table]:
     if table.is5NF():
-        return {table}
-    if len(table.attributes) > 3:
+        return {deepcopy(table)}
+
+    if len(table.primaryKey) > 3:
         print("this can not be decomposed")
-        return {table}
+        return {deepcopy(table)}
     table.makeDataTable()
     newTables: set[Table] = set()
     # dataTables: list[DT.DataTable] = []
@@ -529,8 +475,10 @@ def normalizeTo5NF(table: Table) -> set[Table]:
         # dataTables.append(table.dataTable.project(table.attributes.difference(set({attribute}))))
         newAttributes: set[A.Attribute] = deepcopy(table.attributes.difference(set({attribute})))
         newFunctionalDependency: set[FD.FunctionalDependency] = set({FD.FunctionalDependency(newAttributes, newAttributes)})
-        newTable: Table = Table(attributes=newAttributes, functionalDependencies=newFunctionalDependency)
-        newTable.setName()
+        primeAttributes: list[str] = [a.name for a in newAttributes if a.isPrime]
+        newTableName: str = "".join(primeAttributes)
+        newTable: Table = Table(attributes=newAttributes, functionalDependencies=newFunctionalDependency, name=newTableName+'s')
+        #newTable.setName()
         newTables.add(newTable)
     projectData(table.dataTuples, newTables)
     return newTables
