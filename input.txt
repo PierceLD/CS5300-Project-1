@@ -1,8 +1,0 @@
-input.csv
-StudentID
-StudentID -> FirstName,LastName
-Professor -> ProfessorEmail
-Course -> CourseStart,CourseEnd
-exit
-5
-2

@@ -2,8 +2,8 @@ import Table as T
 import Attribute as A
 import FunctionalDependency as FD
 from copy import deepcopy
-import graphviz
-import pydot
+#import graphviz
+#import pydot
 
 
 from enum import Enum
@@ -112,40 +112,13 @@ class DatabaseSchema:
         output: str = ""
 
         for table in self.tables:
-            output += f"\n{table.name}\n"
-            output += '-'*20
-            output += "\nAttributes: "
-            for attr in table.attributes:
-                output += attr.name + ", "
-            output += "\nPrimary Key: { "
-            for attr in table.attributes:
-                if attr.isPrime:
-                    output += attr.name + ", "
-            output += "}\n\n"
-            for attr in table.attributes:
-                output += f"{attr.name} \t"
-            output += "\n"
-            for tuple in table.dataTuples:
-                for attr in table.attributes:
-                    output += (tuple[attr.name][0] + " \t")
-                output += "\n"
-            output += "\n\nFunctional Dependencies: \n"
-            for fd in table.functionalDependencies:
-                output += "\t{ "
-                for attr in fd.determinants:
-                    output += attr.name + ", "
-                if fd.isMultiValued:
-                    output += "} ->-> { "
-                else:
-                    output += "} -> { "
-                for attr in fd.nonDeterminants:
-                    output += attr.name + ", "
-                output += "}\n\n"
+            output += f"\n\n{table.name}\n"
+            output += table.__str__()
 
         return output
 
     
-    def makeSvg(self) -> None:
+    """def makeSvg(self) -> None:
         node_attributes = {'shape': 'record'}
         dot = graphviz.Digraph(node_attr=node_attributes)
         dot.graph_attr['rankdir'] = 'LR'
@@ -155,10 +128,27 @@ class DatabaseSchema:
             count = 0
             for attribute in table.attributes:
                 if count == len(table.attributes)-1:
-                    label += attribute.__str__() + "}>"
+                    if attribute.isPrime:
+                        label += attribute.__str__() + "(PK)}"
+                    else:
+                        label += attribute.__str__() + "}"
                 else:
-                    label += attribute.__str__() + " | "
-                count += 1 
+                    if attribute.isPrime:
+                        label += attribute.__str__() + "(PK) | "
+                    else:
+                        label += attribute.__str__() + " | "
+                count += 1
+
+            for tuple in table.dataTuples:
+                label += " | {"
+                count = 0
+                for attr in table.attributes:
+                    if count == len(table.attributes)-1:
+                        label += tuple[attr.name][0] + "}"
+                    else:
+                        label += tuple[attr.name][0] + " | "
+                    count += 1
+            label += ">"
             print(label)
             dot.node(table.name.replace(" ", ""), label)
         graphs =  pydot.graph_from_dot_data(dot.source)
@@ -168,7 +158,7 @@ class DatabaseSchema:
 
         graph_svg_file.write(svg_string.decode())
 
-        graph_svg_file.close()
+        graph_svg_file.close()"""
         
 """ Functions to normalize all tables in DB schema
     Input: the DB schema
@@ -293,10 +283,13 @@ def createReferenceTable(databaseSchema: DatabaseSchema) -> list[str]:
     table_query: str = ""
     ref_table_name: str = ""
     ref_table_attributes: list[tuple[str, str]] = []
-    # pre check if there were no partial dependencies to begin with, then new table won't be made for a key in original PK
-    
+
 
     if (len(original_PK) > 1) and (len(databaseSchema.tables) > 1): # composite key indicates many to many relationship, if decomposed to 2NF
+        # check if there is a table whose primary key is the same as input table, if yes skip making the reference table
+        for table in databaseSchema.tables:
+            if set([key.name for key in table.primaryKey]) == set([key.name for key in databaseSchema.original_table.primaryKey]):
+                return table_query
 
         # first find the tables to reference
         disconnected_tables: list[T.Table] = []
@@ -306,7 +299,7 @@ def createReferenceTable(databaseSchema: DatabaseSchema) -> list[str]:
             for fd in table.functionalDependencies:
                 if fd.isMultiValued:
                     tableHasMVFDs = True
-            # TODO: REVISE, I DON'T THINK THIS IS GOOD ENOUGH
+
             if (table_PK < original_PK) and (not tableHasMVFDs): # if current table's PK is a proper subset of original PK (means original relation was split)
                 disconnected_tables.append(table)
 
