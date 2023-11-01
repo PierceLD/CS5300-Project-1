@@ -2,6 +2,7 @@
 ### Developed by: Pierce Dreiling, Adam McNeil, and Daniel Martin  
 ### Notes for correctly entering input:  
 The following are necessary for correctly inputting data:
+- Run **main.py**
 - In the csv file, to indicate a multi-valued attribute in a single cell, wrap the cell data with double-quotes and separate data values with a comma. i.e "X,Y,Z" for a multi-valued attribute Project.
 - Indicate the primary key of the relation by typing the attribute names separated by a comma (if composite PK). i.e. StudentID, Course
 - Input all necessary, non-trivial functional dependencies.
@@ -23,7 +24,6 @@ The following are necessary for correctly inputting data:
 - SQL Queries in a text file SQLQueries.txt
     - Highest normal form of the input table is also outputted to that file (if opted)
 - Relation table outputted in console in the specified normal form
-- svg image that displays the tables and data in a cleaner format
 
 ### Objects and functions:
 For our basic structure, we created class objects corresponding to a specific aspect of a database relation including attributes, functional dependencies, tables and the database schema itself.  
@@ -39,6 +39,7 @@ For our basic structure, we created class objects corresponding to a specific as
 - It also has member functions for checking which normal form it is in--`is#NF()`--and also helper functions for getting specific attributes or comparing an inputted set of attributes or functional dependencies to it's own sets.
 - The other non-member functions--`normalizeTo#NF()`--in the same file are the normalization functions for 1NF to 5NF, where a table is inputted and a set of tables is outputted representing the inputted table altered/decomposed in the respective normal form.
 - `dataProject()` is used to properly project data tuples into each decomposed table of a base relation.  
+- For 5NF, we narrowed it down so that a table with 3 prime attributes will only be decomposed (if necessary). A table with more or less prime attributes will be ignored.
 
 **DatabaseSchema.py**
 - A DatabaseSchema object stores the original input table, un-altered, and a list of Table objects, which holds all of the tables resulting from decomposing the original input table. This is the object created in **main.py** to start the process of decomposition.
