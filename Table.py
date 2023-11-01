@@ -519,7 +519,6 @@ def normalizeTo4NF(table: Table) -> set[Table]:
 def normalizeTo5NF(table: Table) -> set[Table]:
     if table.is5NF():
         return {table}
-<<<<<<< HEAD
     if len(table.attributes) > 3:
         print("this can not be decomposed")
         return {table}
@@ -533,7 +532,5 @@ def normalizeTo5NF(table: Table) -> set[Table]:
         newTable: Table = Table(attributes=newAttributes, functionalDependencies=newFunctionalDependency)
         newTable.setName()
         newTables.add(newTable)
+    projectData(table.dataTuples, newTables)
     return newTables
-=======
-    
->>>>>>> 87187f0a496300159f810f7dac2e406c23015436
