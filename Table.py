@@ -74,33 +74,54 @@ class Table:
         a table is in 5NF if it has a least one attribute that is not part of the primary key
     """
     def is5NF(self) -> bool:
+        self.makeDataTable()
         if not self.is4NF():
             return False
         if len(self.attributes) < 3:
             return True
-        if len(self.attributes) > 5:
+        if len(self.attributes) > 3:
             return False
         for attribute in self.attributes:
             if not attribute.isPrime:
                 return True
         if len(self.attributes) == 3:
-            print("we are doing the correct thing")
             dataTables: list[DT.DataTable] = []
             for attribute in self.attributes:
                 dataTables.append(self.dataTable.project(self.attributes.difference(set({attribute}))))
-            print(self.dataTable)
-            for table in dataTables:
-                print(table)
-                for joinTable in dataTables:
-                    if table is joinTable:
-                        continue
-                    testJoinTable: DT.DataTable = table.equalJoin(table.attributeSet.intersection(joinTable.attributeSet), joinTable)
-                    print(testJoinTable)
-                    print(testJoinTable.equal(self.dataTable))
-                    if testJoinTable.equal(self.dataTable):
-                        return False
+            testJoinOne: DT.DataTable = DT.reduce(dataTables[0].equalJoin(dataTables[0].attributeSet.intersection(dataTables[1].attributeSet), dataTables[1]))
+            testJoinTwo: DT.DataTable = DT.reduce(dataTables[1].equalJoin(dataTables[1].attributeSet.intersection(dataTables[2].attributeSet), dataTables[2]))
+            testJoinTable: DT.DataTable = DT.reduce(testJoinOne.equalJoin(testJoinOne.attributeSet.intersection(testJoinTwo.attributeSet), testJoinTwo))
+            if testJoinTable.equal(self.dataTable):
+                return False
+            # for table in dataTables:
+            #     # print(table)
+            #     for joinTable in dataTables:
+            #         if table is joinTable:
+            #             continue
+            #         testJoinOne: DT.DataTable = DT.reduce(table.equalJoin(table.attributeSet.intersection(joinTable.attributeSet), joinTable))
+            #         testJoinTable: DT.DataTable = DT.reduce(table.equalJoin(table.attributeSet.intersection(joinTable.attributeSet), joinTable))
+            #         testJoinTable: DT.DataTable = DT.reduce(table.equalJoin(table.attributeSet.intersection(joinTable.attributeSet), joinTable))
+            #         print(len(testJoinTable.rowList))
+            #         # print(testJoinTable)
+            #         # print(testJoinTable.equal(self.dataTable))
+            #         if testJoinTable.equal(self.dataTable):
+            #             return False
         return True
-        
+    
+    def setName(self) -> None:
+        newName: str = ""
+        for attribute in self.getPrimeAttributes():
+            newName += attribute.name + " "
+        self.name = newName
+            
+    def makeDataTable(self) -> None:
+        newDataTable: DT.DataTable = DT.DataTable(self.attributes, [])
+        for dictionary in self.dataTuples:
+            newDictionary: dict[A.Attribute, str] = {}
+            for attribute in self.attributes:
+                newDictionary[attribute] = dictionary[attribute.name][0]
+            newDataTable.addRow(DT.Row(newDataTable, newDictionary))
+        self.dataTable = newDataTable
     
     def isSuperkey(self, attributes: set[A.Attribute]) -> bool:
         # Helper function to check if a set of attributes is a superkey
@@ -467,3 +488,17 @@ def normalizeTo4NF(table: Table) -> set[Table]:
 def normalizeTo5NF(table: Table) -> set[Table]:
     if table.is5NF():
         return {table}
+    if len(table.attributes) > 3:
+        print("this can not be decomposed")
+        return {table}
+    table.makeDataTable()
+    newTables: set[Table] = set()
+    # dataTables: list[DT.DataTable] = []
+    for attribute in table.attributes:
+        # dataTables.append(table.dataTable.project(table.attributes.difference(set({attribute}))))
+        newAttributes: set[A.Attribute] = deepcopy(table.attributes.difference(set({attribute})))
+        newFunctionalDependency: set[FD.FunctionalDependency] = set({FD.FunctionalDependency(newAttributes, newAttributes)})
+        newTable: Table = Table(attributes=newAttributes, functionalDependencies=newFunctionalDependency)
+        newTable.setName()
+        newTables.add(newTable)
+    return newTables

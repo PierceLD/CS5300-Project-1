@@ -1,0 +1,31 @@
+CREATE TABLE Part_name Sname  (
+	Part_name VARCHAR(100) PRIMARY KEY,
+	Sname VARCHAR(100) PRIMARY KEY
+);
+
+CREATE TABLE Sname Proj_name  (
+	Sname VARCHAR(100) PRIMARY KEY,
+	Proj_name VARCHAR(100) PRIMARY KEY
+);
+
+CREATE TABLE Part_name Proj_name  (
+	Part_name VARCHAR(100) PRIMARY KEY,
+	Proj_name VARCHAR(100) PRIMARY KEY
+);
+
+CREATE TABLE Part_name Sname Sname Proj_name Part_name Proj_name  (
+	Part_name VARCHAR(100),
+	Sname VARCHAR(100),
+	Sname VARCHAR(100),
+	Proj_name VARCHAR(100),
+	Part_name VARCHAR(100),
+	Proj_name VARCHAR(100),
+	FOREIGN KEY (Part_name) REFERENCES Part_name Sname (Part_name),
+	FOREIGN KEY (Sname) REFERENCES Part_name Sname (Sname),
+	FOREIGN KEY (Sname) REFERENCES Sname Proj_name (Sname),
+	FOREIGN KEY (Proj_name) REFERENCES Sname Proj_name (Proj_name),
+	FOREIGN KEY (Part_name) REFERENCES Part_name Proj_name (Part_name),
+	FOREIGN KEY (Proj_name) REFERENCES Part_name Proj_name (Proj_name)
+);
+
+Highest normal form of the input table: 4NF

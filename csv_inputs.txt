@@ -80,3 +80,10 @@ exit
 4
 1
 
+//supply
+supply.csv
+Sname, Part_name, Proj_name
+Sname, Part_name, Proj_name -> Sname, Part_name, Proj_name
+exit
+5
+1

@@ -62,7 +62,13 @@ class DataTable():
             if testRow.equal(row):
                 return True
         return False
-            
+    
+def reduce(dataTable: DataTable) -> DataTable:
+    newDataTable: DataTable = DataTable(dataTable.attributeSet, [])
+    for row in dataTable.rowList:
+        if not newDataTable.contains(row):
+            newDataTable.addRow(row)   
+    return newDataTable
 
 class Row():
     dataTable: DataTable
@@ -88,6 +94,6 @@ class Row():
         if len(self.rowDictionary) != len(otherRow.rowDictionary):
             return False
         for key in self.rowDictionary:
-            if self.rowDictionary[key] == otherRow.rowDictionary[key]:
+            if self.rowDictionary[key] != otherRow.rowDictionary[key]:
                 return False
         return True

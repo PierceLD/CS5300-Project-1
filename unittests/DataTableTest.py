@@ -5,9 +5,9 @@ import Table as T
 
 class DataTableTest(unittest.TestCase):
     # Define attributes for name, ID, and class
-    name_attr = A.Attribute("Name")
-    id_attr = A.Attribute("ID")
-    class_attr = A.Attribute("Class")
+    name_attr = A.Attribute("Name", isPrime=True)
+    id_attr = A.Attribute("ID", isPrime=True)
+    class_attr = A.Attribute("Class", isPrime=True)
     attributes: set[A.Attribute] = set([name_attr, id_attr, class_attr])
 
 
@@ -47,13 +47,25 @@ class DataTableTest(unittest.TestCase):
         
     joinedTable: DT.DataTable = name_id_table.equalJoin(name_id_table.attributeSet.intersection(id_class_table.attributeSet), id_class_table)
     
+    name = A.Attribute("name")
+    id = A.Attribute("id")
+    reduceTable: DT.DataTable = DT.DataTable(set([name, id]), [])
+    reduce_row1 = DT.Row(reduceTable, {name: "John", id: "001"})
+    reduce_row2 = DT.Row(reduceTable, {name: "John", id: "001"})
+    reduce_row3 = DT.Row(reduceTable, {name: "John", id: "001"})
+    reduceTable.addRow(DT.Row(reduceTable, {name: "John", id: "001"}))
+    reduceTable.addRow(DT.Row(reduceTable, {name: "John", id: "001"}))
+    reduceTable.addRow(DT.Row(reduceTable, {name: "John", id: "001"}))
     
+    # def testReduce(self) -> None:
+    #     print(self.reduceTable)
+    #     print(DT.reduce(self.reduceTable))
     
-    def testProject(self) -> None:
-        print(self.name_id_table)
-        print(self.id_class_table)
-        print(self.joinedTable)
-        print(self.joinedTable.project(set([self.name_attr])))
+    # def testProject(self) -> None:
+    #     print(self.name_id_table)
+    #     print(self.id_class_table)
+    #     print(self.joinedTable)
+    #     print(self.joinedTable.project(set([self.name_attr])))
         
     def test5NF(self) -> None: # this should be in the TableTest.py file but it is a lot easier to have it here and it does not really matter
         table: T.Table = T.Table(attributes=self.attributes, functionalDependencies=set(), name="test table")
