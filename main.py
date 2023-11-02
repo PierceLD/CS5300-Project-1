@@ -55,6 +55,7 @@ def main():
     # create the SQL Queries for the DB schema
     DB_schema.createSQLQueries(find_hnf)
     print(DB_schema)
+    DB_schema.makeSvg()
 
 
 if __name__ == "__main__":

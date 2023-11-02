@@ -2,8 +2,8 @@ import Table as T
 import Attribute as A
 import FunctionalDependency as FD
 from copy import deepcopy
-#import graphviz
-#import pydot
+import graphviz
+import pydot
 
 
 from enum import Enum
@@ -119,11 +119,11 @@ class DatabaseSchema:
         return output
 
     
-    """def makeSvg(self) -> None:
+    def makeSvg(self) -> None:
         node_attributes = {'shape': 'record'}
         dot = graphviz.Digraph(node_attr=node_attributes)
         dot.graph_attr['rankdir'] = 'LR'
-        print(self.tables)
+        # print(self.tables)
         for table in self.tables:
             label: str = "<<B>" + table.name + "</B> | {"
             count = 0
@@ -150,7 +150,7 @@ class DatabaseSchema:
                         label += tuple[attr.name][0] + " | "
                     count += 1
             label += ">"
-            print(label)
+            # print(label)
             dot.node(table.name.replace(" ", ""), label)
         graphs =  pydot.graph_from_dot_data(dot.source)
         svg_string = graphs[0].create_svg()
@@ -159,7 +159,7 @@ class DatabaseSchema:
 
         graph_svg_file.write(svg_string.decode())
 
-        graph_svg_file.close()"""
+        graph_svg_file.close()
         
 """ Functions to normalize all tables in DB schema
     Input: the DB schema
