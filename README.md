@@ -12,6 +12,7 @@ The following are necessary for correctly inputting data:
         - i.e. `StudentID, Course -> FirstName, Instructor`
     - For regular dependencies, do not write separate FDs for dependencies with the same determinant. i.e `StudentID -> FirstName` and `StudentID -> LastName` should be inputted as `StudentID -> FirstName, LastName`
         - i.e. `StudentID -> FirstName, LastName`
+    - Do not combine dependencies together. i.e. if `Course -> CourseStart, CourseEnd` and `Course, Professor -> classRoom`, then don't combine them into `Course, Professor -> CourseStart, CourseEnd, classRoom`. Write them separately.
     - For multi-valued dependencies use a double arrow. 
         - i.e. `Ename ->-> Dname`
     - If you have a multi-valued dependency that can be written in shorthand as `Ename ->-> Dname | Ename`, please separate it into two separate multi-valued dependencies. 
