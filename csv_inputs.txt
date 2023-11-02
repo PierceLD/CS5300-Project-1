@@ -94,3 +94,18 @@ Sname, Part_name, Proj_name
 exit
 5
 1
+
+//new sample input
+students2.csv
+StudentID, Course
+StudentID -> FirstName, LastName
+Course, Professor -> classRoom
+Course -> CourseStart, CourseEnd
+Professor -> ProfessorEmail
+Course ->-> Professor
+Course ->-> classRoom
+StudentID ->-> Course
+StudentID ->-> Professor
+exit
+4
+1
