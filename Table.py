@@ -334,9 +334,6 @@ def normalizeTo2NF(table: Table) -> set[Table]:
 
     for newTable in newTables: # add a functional dependency to each table where PK determines all non-prime attributes
         non_prime_attrs: set[A.Attribute] = set([attr for attr in newTable.attributes if not attr.isPrime])
-        for attr in non_prime_attrs:
-            print(attr.name, end=" ")
-        print()
         fd_already_exists = False
         for fd in newTable.functionalDependencies:
             if set([attr.name for attr in fd.determinants]) == set([key.name for key in newTable.primaryKey]) and not fd.isMultiValued:
@@ -369,11 +366,6 @@ def normalizeTo3NF(table: Table) -> set[Table]:
             if attr.isPrime:
                 determinant_has_prime = True
         if (not functionalDependency.isMultiValued) and (not functionalDependency.determinants.issubset(originalTable.primaryKey)) and (not determinant_has_prime):
-            for key in originalTable.primaryKey:
-                print(key, end=" ")
-            print(functionalDependency)
-            for nd in functionalDependency.nonDeterminants:
-                print(nd, end=" ")
             #Add new table with functional dependency attributes and with the functional dependency itself
             newAttrs: set[A.Attribute] = functionalDependency.determinants.union(functionalDependency.nonDeterminants)
             newTable: Table = Table(deepcopy(newAttrs), {deepcopy(functionalDependency)})
@@ -397,35 +389,6 @@ def normalizeTo3NF(table: Table) -> set[Table]:
     originalTable.functionalDependencies = originalTable.functionalDependencies.difference(fds_to_remove)
     originalTable.attributes = originalTable.attributes.difference(attrs_to_remove)
     newTables.add(deepcopy(originalTable))
-    
-    """for functionalDependency in originalTable.functionalDependencies:
-        if not functionalDependency.isMultiValued and not functionalDependency.determinants.issubset(originalTable.primaryKey):
-            #Add new table with functional dependency attributes and with the functional dependency itself
-            newAttrs: set[FD.FunctionalDependency] = functionalDependency.determinants.union(functionalDependency.nonDeterminants)
-            newTable: Table = Table(newAttrs, {functionalDependency})
-            newTables.add(deepcopy(newTable))
-    # make appropriate attributes prime
-    for relation in newTables:
-        for dependency in relation.functionalDependencies:
-            for d_attr in dependency.determinants:
-                for attr in relation.attributes:
-                    if d_attr.name == attr.name:
-                        attr.isPrime = True # make attribute on lhs of dependency prime in relation's attribute set
-                        d_attr = attr # make the attribute in determinant reference attribute in relation's attribute's set
-                        relation.primaryKey.add(attr) # add attribute to table's PK
-        primeAttributes: list[str] = [attr.name for attr in relation.attributes if attr.isPrime]
-        newTableName: str = "".join(primeAttributes)
-        relation.name = newTableName + 's'"""
-
-    """# loop thru newTables to determine where to add multi-valued FDs, if any
-    multivaluedFDs: set[FD.FunctionalDependency] = set([fd for fd in originalTable.functionalDependencies if fd.isMultiValued])
-    if len(multivaluedFDs):
-        for newTable in newTables:
-            for fd in multivaluedFDs:
-                fdAttrs: set[A.Attribute] = fd.determinants.union(fd.nonDeterminants)
-                fdAttrNames: set[str] = set([attr.name for attr in fdAttrs])
-                if fdAttrNames <= set([attr.name for attr in newTable.attributes]): # if union of fd attributes is subset of the newTable's attributes
-                    newTable.functionalDependencies.add(fd) # add MVFD to new table's FDs"""
 
     # make sure attributes in all FDs are referencing an attribute in newTable.attributes list
     for newTable in newTables:
@@ -550,19 +513,15 @@ def normalizeTo5NF(table: Table) -> set[Table]:
         return {deepcopy(table)}
 
     if len(table.primaryKey) > 3:
-        print("this can not be decomposed")
         return {deepcopy(table)}
     table.makeDataTable()
     newTables: set[Table] = set()
-    # dataTables: list[DT.DataTable] = []
     for attribute in table.attributes:
-        # dataTables.append(table.dataTable.project(table.attributes.difference(set({attribute}))))
         newAttributes: set[A.Attribute] = deepcopy(table.attributes.difference(set({attribute})))
         newFunctionalDependency: set[FD.FunctionalDependency] = set({FD.FunctionalDependency(newAttributes, newAttributes)})
         primeAttributes: list[str] = [a.name for a in newAttributes if a.isPrime]
         newTableName: str = "".join(primeAttributes)
         newTable: Table = Table(attributes=newAttributes, functionalDependencies=newFunctionalDependency, name=newTableName+'s')
-        #newTable.setName()
         newTables.add(newTable)
     projectData(table.dataTuples, newTables)
     return newTables
