@@ -50,7 +50,7 @@ class DatabaseSchema:
         Output: output string
     """
     def findHighestNF(self) -> str:
-        output: str = "Highest normal form of the input table: "
+        output: str = "\nHighest normal form of the input table: "
 
         if self.original_table.is5NF():
             output += "5NF"
