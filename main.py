@@ -50,7 +50,7 @@ def main():
     print("Find the highest normal form of the input table? (1: Yes, 2: No):")
     find_hnf: str = input()
     if find_hnf == '1':
-        DB_schema.findHighestNF()
+        print(DB_schema.findHighestNF())
 
     # create the SQL Queries for the DB schema
     DB_schema.createSQLQueries(find_hnf)
